@@ -1,0 +1,27 @@
+{
+  "name": "easy-egg",
+  "version": "1.0.0",
+  "description": "A scaffold for Egg.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/NoahAdams-c/easy-egg.git"
+  },
+  "keywords": [
+    "egg.js"
+  ],
+  "author": "chenchen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NoahAdams-c/easy-egg/issues"
+  },
+  "homepage": "https://github.com/NoahAdams-c/easy-egg#readme",
+  "dependencies": {
+    "commander": "^7.1.0",
+    "express": "^4.17.1",
+    "open": "^8.0.2"
+  }
+}
