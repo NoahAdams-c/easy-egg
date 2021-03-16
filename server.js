@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:17:03
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-12 14:58:20
+ * @LastEditTime: 2021-03-16 15:09:15
  */
 const express = require("express")
 const app = express()
@@ -29,9 +29,11 @@ module.exports = {
 		})
 		// static
 		app.use(express.static(path.join(__dirname, "views")))
-		console.log(__dirname)
 		// josn parser
 		app.use(body_parser.json())
+		app.use("/path", (req, res) => {
+			res.send(__dirname)
+		})
 
 		// create server listen
 		const server = app.listen(port, function () {
