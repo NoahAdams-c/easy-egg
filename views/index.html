@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-16 15:11:58
+ * @LastEditTime: 2021-03-16 18:18:43
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -26,6 +26,57 @@
     <style>
         * {
             box-sizing: border-box;
+        }
+
+        .file-header {
+            height: 50px;
+            font-size: 20px;
+            padding: 5px 10px;
+            display: flex;
+        }
+        .file-header__path {
+            max-width: 500px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            direction: rtl;
+        }
+        .file-header__back {
+            flex: 1;
+            text-align: right;
+        }
+        .file-header__back i {
+            cursor: pointer;
+        }
+
+        .file-explorer {
+            height: 500px;
+            font-size: 20px;
+            padding: 5px;
+            box-shadow:inset 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .file-explorer__item {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+        }
+        .file-explorer__item ~ .file-explorer__item {
+            margin-top: 10px;
+        }
+        .file-explorer__item:hover {
+            background-color: #65caf2;
+        }
+        .file-explorer__item--icon,.file-explorer__item--name {
+            width: fit-content;
+        }
+        .file-explorer__item--icon {
+            margin-right: 10px;
+        }
+        .file-explorer__item--link {
+            flex: 1;
+            text-align: right;
         }
 
         .el-collapse,.el-collapse-item__header,.el-collapse-item__wrap {
@@ -295,7 +346,7 @@
                                         <el-input v-model="baseInfoForm.projectDescrption"></el-input>
                                     </el-form-item>
                                     <el-form-item prop="projectSavePath" label="项目保存路径">
-                                        <el-input v-model="baseInfoForm.projectSavePath"></el-input>
+                                        <el-input readonly v-model="baseInfoForm.projectSavePath" @click.native="isPathChoiseDialogShow = true"></el-input>
                                     </el-form-item>
                                     <el-form-item prop="projectRepository" label="Git地址">
                                         <el-input v-model="baseInfoForm.projectRepository"></el-input>
@@ -460,6 +511,31 @@
             </el-footer>
         </el-container>
 
+        <!-- 保存目录选择弹窗 -->
+        <el-dialog
+            title="选择目录"
+            :visible.sync="isPathChoiseDialogShow"
+            width="50%"
+            @open="getFileList()"
+            @close="isPathChoiseDialogShow = false">
+            <div class="file-header">
+                <div class="file-header__path">{{savePath}}</div>
+                <div class="file-header__back"><i class="el-icon-back" @click="goBack"></i></div>
+            </div>
+            <div class="file-explorer">
+                <div v-for="(item,index) in fileList" :key="index" class="file-explorer__item" @click="openDir(item)">
+                    <div class="file-explorer__item--icon"><i :class="item.isDir ? 'el-icon-folder' : 'el-icon-document'"></i></div>
+                    <div class="file-explorer__item--name">{{item.name}}</div>
+                    <div v-if="item.isDir" class="file-explorer__item--link"><i class="el-icon-caret-right"></i></div>
+                </div>
+            </div>
+            <span slot="footer">
+                <el-button @click="isPathChoiseDialogShow = false">取消</el-button>
+                <el-button type="primary" @click="confirmSavePath">确定</el-button>
+            </span>
+        </el-dialog>
+        
+
         <!-- 数据库配置表单弹窗 -->
         <el-dialog
             title="数据库配置"
@@ -496,16 +572,6 @@
         </el-dialog>
         
         <!-- 业务设计接口表单弹窗 -->
-        <!-- APIDesignForm: {
-            name: "info",
-            description: '获取用户信息',
-            needAuth: true,
-            routerName: "info",
-            methods: "get",
-            requiredParams: ["username","password"],
-            notRequiredParams: ["name"],
-            expectResponse: ["errcode","errmsg","userName","age"]
-        }, -->
         <el-dialog
             title="接口设计"
             :visible.sync="isAPIDesignDialogShow"
@@ -567,14 +633,24 @@
         </el-dialog>
     </div>
     <script>
+        const HOST = 'http://127.0.0.1:12345'
+
         new Vue({
             el: "#app",
 
             data: {
+                // 是否为windows平台
+                isWin: false,
                 // 是否确认创建项目
                 isConfirmNewProject: false,
                 // 当前配置步骤
                 curConfigStep: 1,
+                // 目录选择文件列表
+                fileList: [],
+                // 选择的保存目录
+                savePath: "",
+                // 是否展示保存目录选择弹窗
+                isPathChoiseDialogShow: false,
                 // 项目基本信息表单对象
                 baseInfoForm: {
                     projectName: "",
@@ -591,7 +667,7 @@
                         { pattern: /^\w{4,20}$/, message: '项目名称只能是4-20位单词字符哦！', trigger: 'blur' },
                     ],
                     projectSavePath: [
-                        { required: true, message: '必须填写项目保存路径哦！', trigger: 'blur' },
+                        { required: true, message: '必须填写项目保存路径哦！', trigger: 'change' },
                     ]
                 },
                 // 项目配置与扩展折叠面板激活项
@@ -704,9 +780,7 @@
                 },
             },
 
-            async created() {
-                const res = await axios.get('http://127.0.0.1:12345/path').then(res=>res.data).catch(err=>err.response.data)
-                console.log(res)
+            created() {
             },
 
             computed: {
@@ -881,6 +955,70 @@
                    this.$refs['APIDesignForm'].resetFields()
                    this.isAPIDesignDialogShow = false
                },
+
+               /**
+                * 获取文件列表
+               */
+               async getFileList(path) {
+                    const p = path || this.baseInfoForm.projectSavePath 
+                    const result = await axios.get(`${HOST}/files${p?'?path='+encodeURIComponent(p):''}`)
+                        .then(res=>res.data)
+                        .catch(err=>err.response.data)
+                    if(result.status === 0) {
+                        this.savePath = result.currentPath
+                        this.fileList = result.files
+                        this.isWin = result.isWin
+                    }
+                },
+
+                /**
+                 * 打开目录
+                */
+                openDir(file) {
+                    if(!file.isDir) {
+                        return
+                    }
+                    let path = ""
+                    if(this.isWin) {
+                        path = `${this.savePath}${/^\w{1}:\\$/.test(this.savePath) ? '' : '\\'}${file.name}`
+                    } else {
+                        path = `${this.savePath}${this.savePath === '/' ? '' : '/'}${file.name}`
+                    }
+                    this.getFileList(path)
+                },
+
+                /**
+                 * 返回上一级目录
+                */
+                goBack() {
+                    let pathSplit = []
+                    if(this.isWin) {
+                        pathSplit = this.savePath.split('\\')
+                    } else {
+                        pathSplit = this.savePath.split('/')
+                    }
+                    if(!pathSplit[1]) {
+                        return
+                    }
+                    pathSplit.splice(-1,1)
+                    let path = ''
+                    if(this.isWin) {
+                        path = `${pathSplit.length>1?'':'\\'}${pathSplit.join('\\')}`
+                    } else {
+                        path = `${pathSplit.length>1?'':'/'}${pathSplit.join('/')}`
+                    }
+                    this.getFileList(path)
+                },
+
+                /**
+                 * 确认保存路径
+                */
+                confirmSavePath() {
+                    console.log('savePath',this.savePath)
+                    this.baseInfoForm.projectSavePath = this.savePath
+                    console.log('baseInfoForm',this.baseInfoForm.projectSavePath)
+                    this.isPathChoiseDialogShow = false
+                }
             }
         })
     </script>
