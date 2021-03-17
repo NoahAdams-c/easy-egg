@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-16 18:18:43
+ * @LastEditTime: 2021-03-17 17:45:16
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -23,288 +23,35 @@
     <script src="https://cdn.staticfile.org/element-ui/2.9.0/index.js"></script>
     <!-- 引入element样式 -->
     <link rel="stylesheet" href="https://cdn.staticfile.org/element-ui/2.9.0/theme-chalk/index.css">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        .file-header {
-            height: 50px;
-            font-size: 20px;
-            padding: 5px 10px;
-            display: flex;
-        }
-        .file-header__path {
-            max-width: 500px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-            direction: rtl;
-        }
-        .file-header__back {
-            flex: 1;
-            text-align: right;
-        }
-        .file-header__back i {
-            cursor: pointer;
-        }
-
-        .file-explorer {
-            height: 500px;
-            font-size: 20px;
-            padding: 5px;
-            box-shadow:inset 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
-
-        .file-explorer__item {
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-        }
-        .file-explorer__item ~ .file-explorer__item {
-            margin-top: 10px;
-        }
-        .file-explorer__item:hover {
-            background-color: #65caf2;
-        }
-        .file-explorer__item--icon,.file-explorer__item--name {
-            width: fit-content;
-        }
-        .file-explorer__item--icon {
-            margin-right: 10px;
-        }
-        .file-explorer__item--link {
-            flex: 1;
-            text-align: right;
-        }
-
-        .el-collapse,.el-collapse-item__header,.el-collapse-item__wrap {
-            border: none;
-        }
-        .el-collapse-item:last-child {
-            border-bottom: 1px solid #eeeeee;
-        }
-        .el-collapse-item__wrap{
-            padding: 10px;
-            border-left: 1px solid #eeeeee;
-            border-right: 1px solid #eeeeee;
-        }
-        .collapse-title {
-            padding-left: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .el-collapse-item ~ .el-collapse-item {
-            margin-top: 8px;
-        }
-        .el-collapse-item__header {
-            /* background-color: #eaeaea; */
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .button-bar {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .el-container {
-            height: 100vh;
-        }
-
-        .el-breadcrumb__inner {
-            cursor: pointer;
-        }
-
-        /* header */
-        .el-header {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            padding: 0 50px;
-            background-color: antiquewhite;
-            box-shadow: 0 1px 5px 0px #a0a0a0;
-            height: 90px !important;
-        }
-        .el-header .header-logo img {
-            height: 70px;
-            width: 70px;
-        }
-        .el-header .header-title {
-            margin-left: 30px;
-            font-size: 36px;
-            font-weight: bold;
-        }
-
-        /* main content */
-        .el-main {
-            flex: 1;
-            padding: 20px 50px;
-        }
-        .el-main .main-new,.main-detail {
-            height: 100%;
-        }
-        .el-main .main-new {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .el-main .main-new__icon {
-            color: #d0d0d0;
-            font-size: 100px;
-            cursor: pointer;
-        }
-        .el-main .main-new__icon:hover {
-            color: #a0a0a0;
-            font-size: 120px;
-        }
-        .el-main .main-new__tip {
-            color: #d0d0d0;
-            font-size: 20px;
-        }
-        .el-main .main-detail {
-            display: flex;
-            flex-direction: column;
-        }
-        .el-main .main-detail .main-detail__header {
-            height: fit-content;
-        }
-        .el-main .main-detail .main-detail__form {
-            margin: 10px auto;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-            height: fit-content;
-            min-width: 800px;
-            width: fit-content;
-            padding: 20px 50px;
-        }
-        .el-main .main-detail .main-detail__form .form-button-bar {
-            margin-top: 50px;
-            text-align: center;
-        }
-        .el-main .main-detail .main-detail__form .db-config .db-config__item {
-            height: 100px;
-            width: 200px;
-            padding: 10px;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-        }
-        .el-main .main-detail .main-detail__form .db-config {
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 10px;
-        }
-        .db-config__item i {
-            margin-right: 10px;
-        }
-        .db-config__item .db-config__item--dbname {
-            font-size: 22px;
-            line-height: 22px;
-            margin-bottom: 20px;
-        }
-        .db-config__item .db-config__item--username,.db-config__item--host {
-            font-size: 16px;
-            line-height: 16px;
-        }
-        .el-main .main-detail .main-detail__form .db-config .db-config__item.new-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #d0d0d0;
-            font-size: 50px;
-            cursor: pointer;
-        }
-        .service-design__header .el-breadcrumb {
-            font-size: 20px;
-            margin-bottom: 20px;
-        }   
-        .service-design__preview {
-            margin-bottom: 20px;
-        }
-        .service-design__preview pre {
-            margin: 5px 0;
-            background-color: #b0b0b0;
-        }
-        .service-design__handle {
-            max-height: 500px;
-            padding: 10px 5px;
-        }
-        .service-design__handle--item {
-            display: flex;
-            align-items: center;
-            padding: 5px 20px;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-        }
-        .service-design__handle--item ~ .service-design__handle--item {
-            margin-top: 8px;
-        }
-        .service-design__handle--item .item-name {
-            height: 40px;
-            width: 200px;
-            font-size: 18px;
-            line-height: 40px;
-        }
-        .service-design__handle--item .item-icon {
-            flex: 1;
-            text-align: right;
-            font-size: 20px;
-        }
-        .service-design__handle--item .item-icon i {
-            cursor: pointer;
-        }
-        .service-design__handle--item.new-item {
-            font-size: 30px;
-            /* padding: 10px; */
-            justify-content: center;
-        }
-
-        /* footer */
-        .el-footer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #eaeaea;
-            box-shadow: 0 -1px 5px 0px #a0a0a0;
-        }
-
-        /* 滚动条整体部分 */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        /* 滚动条中用于拖动的块 */
-        ::-webkit-scrollbar-thumb {
-            width: 5px;
-            border-radius: 5px;
-            background-color: #409EFF;
-        }
-        /* 滚动条的轨道 */
-        ::-webkit-scrollbar-track {
-            width: 5px;
-            box-shadow: inset 0px 0px 3px 0px #aeaeae;
-            background-color: whitesmoke;
-        }
-        /* 滚动条两端的按钮 */
-        ::-webkit-scrollbar-button {
-            display: none;
-        }
-    </style>
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="./css/index.css">
 </head>
 <body style="margin: 0;height: 100vh;">
     <div  id="app">
         <el-container direction="vertical">
-            <!-- Header content -->
+            <!-- 页面头部 -->
             <el-header>
-                <div class="header-logo">
-                    <img src="./images/logo.png">
+                <div class="header-bar">
+                    <div class="logo">
+                        <img src="./images/logo.png">
+                    </div>
+                    <div class="title">
+                        Easy&nbsp;&nbsp;Egg
+                    </div>
                 </div>
-                <div class="header-title">
-                    Easy&nbsp;&nbsp;Egg
-                </div>
+                <template v-if="isConfirmNewProject">
+                    <el-steps :active="curConfigStep" simple>
+                        <el-step title="基本信息" description="" icon="el-icon-info"></el-step>
+                        <el-step title="配置与扩展" description="" icon="el-icon-s-operation"></el-step>
+                        <el-step title="业务设计" description="" icon="el-icon-s-order"></el-step>
+                        <el-step title="创建项目" description="" icon="el-icon-success"></el-step>
+                    </el-steps>
+                </template>
             </el-header>
 
-            <!-- Main content -->
+            <!-- 页面主内容部分 -->
             <el-main>
-                <!-- new project -->
+                <!-- 新建项目 -->
                 <template v-if="!isConfirmNewProject">
                     <div class="main-new">
                         <div class="main-new__icon" @click="isConfirmNewProject = true">
@@ -315,16 +62,11 @@
                         </div>
                     </div>
                 </template>
-                <!-- config project -->
+                <!-- 项目配置 -->
                 <template v-else>
                     <div class="main-detail">
+                        <a name="mainDetailTop"></a>
                         <div class="main-detail__header">
-                            <el-steps :active="curConfigStep" simple>
-                                <el-step title="基本信息" description="" icon="el-icon-info"></el-step>
-                                <el-step title="配置与扩展" description="" icon="el-icon-s-operation"></el-step>
-                                <el-step title="业务设计" description="" icon="el-icon-s-order"></el-step>
-                                <el-step title="创建完成" description="" icon="el-icon-success"></el-step>
-                            </el-steps>
                         </div>
                         <div class="main-detail__form">
                             <!-- 基本信息 -->
@@ -414,6 +156,7 @@
                                     </el-collapse-item>
                                 </el-collapse>
                                 <div class="button-bar">
+                                    <el-button type="primary" size="default" @click="curConfigStep--">上一步</el-button>
                                     <el-button type="primary" size="default" @click="finishServerConfig">下一步</el-button>
                                 </div>
                             </template>
@@ -422,7 +165,7 @@
                             <template v-if="curConfigStep === 3">
                                 <!-- 面包屑导航 -->
                                 <div class="service-design__header">
-                                    <el-breadcrumb separator-class="el-icon-arrow-right">
+                                    <el-breadcrumb separator="/">
                                         <el-breadcrumb-item v-for="(item,index) in serviceDesignBreadcrumb" 
                                                                               :key="index"
                                                                               @click.native="breadcrumbJump(index+1)">
@@ -433,9 +176,14 @@
                                 <!-- 接口设计 -->
                                 <div class="service-design__handle">
                                     <template v-if="curServiceDesignStep<3">
-                                        <div v-for="(item,index) in serviceDesignList" :key="index" class="service-design__handle--item">
+                                        <div v-for="(item,index) in serviceDesignList" 
+                                                :key="index" 
+                                                class="service-design__handle--item"
+                                                @click="nextSeviceDesign(item.name)">
                                             <div class="item-name">{{item.name}}</div>
-                                            <div class="item-icon"><i class="el-icon-arrow-right" style="color: #409EFF;" @click="nextSeviceDesign(item.name)"></i></div>
+                                            <div class="item-icon">
+                                                <i class="el-icon-arrow-right" style="color: #409EFF;" ></i>
+                                            </div>
                                         </div>
                                         <div class="service-design__handle--item new-item">
                                             <div class="item-name">
@@ -456,56 +204,171 @@
                                                 @click="reviewAPI(item.name)">
                                             <div class="item-name">{{item.name}}</div>
                                             <div class="item-icon">
-                                                <i class="el-icon-edit" style="color: #409EFF;margin-right: 5px;" @click=""></i>
-                                                <i class="el-icon-delete" style="color: #F56C6C;" @click=""></i>
+                                                <i class="el-icon-edit" style="color: #409EFF;margin-right: 5px;" @click="editAPI(item.name)"></i>
+                                                <i class="el-icon-delete" style="color: #F56C6C;" @click="deleteAPI(item.name)"></i>
                                             </div>
                                         </div>
-                                        <div class="service-design__handle--item new-item">
-                                            <i class="el-icon-plus" style="color: #409EFF;margin: 5px 0;" @click="isAPIDesignDialogShow = true"></i>
+                                        <div class="service-design__handle--item new-item-special" @click="addAPI">
+                                            <i class="el-icon-plus" style="color: #409EFF;margin: 5px 0;"></i>
                                         </div>
                                     </template>
                                 </div>
                                 <!-- 接口预览 -->
-                                <div class="service-design__preview" v-if="curServiceDesignStep === 3">
+                                <div class="service-design__preview preview" v-if="curServiceDesignStep === 3">
                                     接口预览：
-                                    <template v-if="selectedDesignNames[2]">
+                                    <template v-if="APIData">
                                         <pre>
-                                            
 /**
  * @Description {{APIData.description}}
  * @Router {{APIData.methods}} /{{selectedDesignNames[0]}}/{{selectedDesignNames[1]}}/{{APIData.routerName}}{{APIData.needAuth?'\n * @Request header { Authorization }':''}}
  * @Request {{APIData.methods === 'get'?'query':'body'}} { {{APIData.requiredParams.join(', ')}}{{APIData.notRequiredParams.length?'[, '+APIData.notRequiredParams.join(', ')+' ]':''}} }
  * @Response 200 { {{APIData.expectResponse.join(', ')}} }
  */
-                                        </pre>
+</pre>
                                     </template>
                                     <template v-else>
                                         <pre>
-                                            
 /**
  * 请点击接口项预览指定接口
  */
-                                        </pre>
+</pre>
                                     </template>
                                 </div>
                                 <div class="button-bar">
-                                    <el-button type="primary" size="default" @click="finishServerConfig">下一步</el-button>
+                                    <el-button type="primary" size="default" @click="curConfigStep--">上一步</el-button>
+                                    <el-button type="primary" size="default" @click="finishServiceDesign">下一步</el-button>
                                 </div>
                             </template>
 
                             <!-- 创建完成 -->
                             <template v-if="curConfigStep === 4">
-                                
+                                <div class="config-finish__preview preview">
+                                    <div class="preview-item">
+                                        <div id="projectPath" class="preview-item__title">项目保存目录</div>
+                                        <pre>{{baseInfoForm.projectSavePath}}</pre>
+                                    </div>
+                                    <div class="preview-item">
+                                        <div id="defaultConfig" class="preview-item__title">config/config.default.js（默认配置文件）</div>
+                                        <pre>
+const path = require('path')
+// 引入访问白名单配置
+const domainWhiteList = require('./domainWhiteList.json')
+// 引入数据库配置
+const dbConfig = require('./database.js')
+
+module.exports = appInfo => {
+    const config = {}
+
+    config.cluster = {
+        listen: {
+            // 端口
+            port: {{serverConfigForm.serverPort}}
+        }
+    }
+    config.keys = 'eyuai_1571574897147_9520'
+    // 中间件配置
+    config.middleware = [{{selectedExtends.includes('consul') ? "'consulHandler',":""}}{{selectedExtends.includes('contexthandler') ? "'contexthandler',":""}}{{selectedExtends.includes('errorhandler') ? "'errorhandler',":""}}]
+    // sequelize配置
+    config.sequelize = {
+        datasources: dbConfig
+    }
+    config.onerror = {
+        html(ctx, err) {
+            ctx.body = '&lt;h3&gt;error&lt;/h3&gt;'
+            ctx.status = 500
+        }
+    }
+    config.errorHandler = {
+        match: '/'
+    }
+    config.security = {
+        csrf: {
+            useSession: true,
+            enable: false,
+            cookieName: 'csrfToken',
+            sessionName: 'csrfToken'
+        },
+        // 访问白名单配置
+        domainWhiteList
+    }
+    config.cors = {
+        origin: '*',
+        exposeHeaders: 'WWW-Authenticate,Server-Authorization,Date',
+        maxAge: 100,
+        credentials: true,
+        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
+        allowHeaders: 'Content-Type,Authorization,Accept,X-Custom-Header,anonymous'
+    }
+    config.static = {
+        prefix: '/',
+        dir: [path.join(appInfo.baseDir, 'app/public')]
+    }
+
+    return config
+}
+</pre>
+                                    </div>
+                                    <div class="preview-item">
+                                        <div id="whiteList" class="preview-item__title">config/domainWhiteList.json（访问白名单）</div>
+                                        <pre>
+[{{serverConfigForm.serverWhiteList ? '\n\t"' + serverConfigForm.serverWhiteList.replace(/\s/g,'",\n\t"') + '"\n' : ''}}]
+</pre>
+                                    </div>
+                                    <div class="preview-item">
+                                        <div id="dbConfig" class="preview-item__title">config/database.js（数据库配置文件）</div>
+                                        <pre>
+module.exports = [
+    <template v-for="(item,index) in dbConfigList" :key="index">{
+        delegate: '{{item.dbName.toLowerCase()}}Model',
+        baseDir: '{{item.dbName.toLowerCase()}}_model',
+        dialect: 'mysql',
+        host: '{{item.host}}',
+        port: {{item.port}},
+        database: '{{item.dbName}}',
+        username: 'item.userName',
+        password: '{{item.password}}',
+        timezone: '+08:00',
+        loggin: true
+    },</template>
+]
+</pre>
+                                    </div>
+                                    <div class="preview-item">
+                                        <div id="routerConfig" class="preview-item__title">app/router.js（总路由文件）</div>
+                                        <pre>
+module.exports = app => {
+    <template v-for="(item,index) in serviceDesignDatas" :key="index">require('./router/{{item.name}}.js')(app)
+    </template>
+}
+</pre>
+                                    </div>
+                                    <div class="preview-item" v-for="(ns,i) in serviceDesignDatas" :key="i">
+                                        <div class="preview-item__title">app/router/{{ns.name}}.js</div>
+                                        <pre>
+module.exports = app => {
+    const { router, controller } = app;
+    <template v-for="(m,j) in ns.children" :key="j">// {{m.name}}
+    <template v-for="(api,k) in m.children" :key="k">router.{{api.methods}}('/{{ns.name}}/{{m.name}}/{{api.routerName}}', controller.{{m.name}}.{{api.name}}) // {{api.description}}
+    </template>
+    </template>
+}
+</pre>
+                                    </div>
+                                </div>
+                                <div class="button-bar">
+                                    <el-button type="primary" size="default" @click="curConfigStep--">上一步</el-button>
+                                    <el-button type="primary" size="default" @click="">确认无误，开始创建</el-button>
+                                </div>
                             </template>
                         </div>
                         <div class="main-detail__footer">
-                            
                         </div>
+                        <a name="mainDetailBottom"></a>
                     </div>
                 </template>
             </el-main>
 
-            <!-- Footer content -->
+            <!-- 页面底部 -->
             <el-footer>
                 版权所有&nbsp;&copy;广州亿语智能科技有限公司
             </el-footer>
@@ -516,6 +379,7 @@
             title="选择目录"
             :visible.sync="isPathChoiseDialogShow"
             width="50%"
+            close-on-click-modal="false"
             @open="getFileList()"
             @close="isPathChoiseDialogShow = false">
             <div class="file-header">
@@ -541,6 +405,7 @@
             title="数据库配置"
             :visible.sync="isDBConfigDialogShow"
             width="30%"
+            close-on-click-modal="false"
             @close="onDBConfigDialogClose">
             <el-form :model="dbConfigForm" 
                             ref="dbConfigForm" 
@@ -576,6 +441,7 @@
             title="接口设计"
             :visible.sync="isAPIDesignDialogShow"
             width="30%"
+            close-on-click-modal="false"
             @close="onAPIDesignDialogClose">
             <el-form :model="APIDesignForm" 
                             ref="APIDesignForm" 
@@ -628,399 +494,27 @@
             </el-form>
             <span slot="footer">
                 <el-button @click="onAPIDesignDialogClose">取消</el-button>
-                <el-button type="primary" @click="addAPIDesign">确定</el-button>
+                <el-button type="primary" @click="addOrEditAPIDesign">确定</el-button>
             </span>
         </el-dialog>
+
+        <!-- 项目配置预览导航 -->
+        <div v-if="isConfirmNewProject && curConfigStep === 4" 
+                class="config-preview__nav" 
+                :class="{fold:isPreviewNavUnfold === false, unfold:isPreviewNavUnfold === true}">
+            <div v-if="!isPreviewNavUnfold" class="nav-unfold" @click="isPreviewNavUnfold = true"><i class="el-icon-d-arrow-left"></i></div>
+            <div class="nav-list">
+                <div class="nav-list__item" @click="location.href='#mainDetailTop'"><i class="el-icon-caret-top"></i></div>
+                <div class="nav-list__item" @click="location.href='#projectPath'">项目保存目录</div>
+                <div class="nav-list__item" @click="location.href='#defaultConfig'">默认配置</div>
+                <div class="nav-list__item" @click="location.href='#whiteList'">访问白名单配置</div>
+                <div class="nav-list__item" @click="location.href='#dbConfig'">数据库配置</div>
+                <div class="nav-list__item" @click="location.href='#routerConfig'">路由配置</div>
+                <div class="nav-list__item" @click="location.href='#mainDetailBottom'"><i class="el-icon-caret-bottom"></i></div>
+            </div>
+            <div v-if="isPreviewNavUnfold" class="nav-fold" @click="isPreviewNavUnfold = false"><i class="el-icon-d-arrow-right"></i></div>
+        </div>
     </div>
-    <script>
-        const HOST = 'http://127.0.0.1:12345'
-
-        new Vue({
-            el: "#app",
-
-            data: {
-                // 是否为windows平台
-                isWin: false,
-                // 是否确认创建项目
-                isConfirmNewProject: false,
-                // 当前配置步骤
-                curConfigStep: 1,
-                // 目录选择文件列表
-                fileList: [],
-                // 选择的保存目录
-                savePath: "",
-                // 是否展示保存目录选择弹窗
-                isPathChoiseDialogShow: false,
-                // 项目基本信息表单对象
-                baseInfoForm: {
-                    projectName: "",
-                    projectAuthor: "",
-                    projectDescrption: "",
-                    projectSavePath: "",
-                    projectRepository: "",
-                    projectType: "http"
-                },
-                // 项目基本信息表单验证规则
-                baseInfoRules:{
-                    projectName: [
-                        { required: true, message: '必须填写项目名称哦！', trigger: 'blur' },
-                        { pattern: /^\w{4,20}$/, message: '项目名称只能是4-20位单词字符哦！', trigger: 'blur' },
-                    ],
-                    projectSavePath: [
-                        { required: true, message: '必须填写项目保存路径哦！', trigger: 'change' },
-                    ]
-                },
-                // 项目配置与扩展折叠面板激活项
-                configCollapseActives: ['serverConfig'],
-                // 服务配置表单对象
-                serverConfigForm: {
-                    serverPort: "7007",
-                    serverWhiteList: ""
-                },
-                // 数据库配置列表
-                dbConfigList: [],
-                // 数据库配置弹窗是否展示
-                isDBConfigDialogShow: false,
-                // 数据库配置表单对象
-                dbConfigForm: {
-                    userName: "root",
-                    password: "960904",
-                    dbName: "D_TEST",
-                    host: "127.0.0.1",
-                    port: "6379"
-                },
-                // 数据库配置表单验证规则
-                dbConfigRules:{
-                    userName: [
-                        { required: true, message: '必须填写数据库登录用户名哦！', trigger: 'blur' },
-                    ],
-                    dbName: [
-                        { required: true, message: '必须填写数据库名哦！', trigger: 'blur' },
-                    ],
-                    host: [
-                        { required: true, message: '必须填写数据库地址哦！', trigger: 'blur' },
-                    ]
-                },
-                // 可选插件扩展
-                extendComponets: [
-                    {
-                        key: 'sequelize',
-                        label: 'Sequelize',
-                        disabled: true
-                    },
-                    {
-                        key: 'jwt',
-                        label: 'JWT鉴权',
-                    },
-                    {
-                        key: 'errorhandler',
-                        label: '全局错误捕捉中间件',
-                    },
-                    {
-                        key: 'contexthandler',
-                        label: '请求上下文中间件',
-                    },
-                    {
-                        key: 'checkparams',
-                        label: '参数检测中间件',
-                    },
-                    {
-                        key: 'checkauth',
-                        label: '鉴权检测中间件',
-                    },
-                    {
-                        key: 'unittest',
-                        label: '单元测试',
-                    },
-                    {
-                        key: 'remotelogger',
-                        label: '日志入库',
-                    },
-                    {
-                        key: 'consul',
-                        label: '服务健康监测',
-                    },
-                ],
-                // 已选插件扩展
-                selectedExtends: ['sequelize'],
-                // 业务设计步骤
-                serviceDesignSteps: ['命名空间','模块','接口方法'],
-                // 业务设计当前所在步骤
-                curServiceDesignStep: 1,
-                // 新增业务设计项(命名空间、模块、接口方法)名
-                newDesignName: '',
-                // 当前选择的业务设计项数组
-                selectedDesignNames: [],
-                // 业务设计数据(三层树状结构，依次为命名空间、模块、接口方法)
-                serviceDesignDatas: [],
-                // 接口设计表单弹窗是否显示
-                isAPIDesignDialogShow: false,
-                // 接口设计表单对象
-                APIDesignForm: {
-                    name: "",
-                    description: '',
-                    needAuth: true,
-                    routerName: "",
-                    methods: "get",
-                    requiredParams: "",
-                    notRequiredParams: "",
-                    expectResponse: ""
-                },
-                // 接口设计表单验证规则
-                APIDesignRules:{
-                    name: [
-                        { required: true, message: '必须填写接口方法名哦！', trigger: 'blur' },
-                    ],
-                    description: [
-                        { required: true, message: '必须填写接口描述哦！', trigger: 'blur' },
-                    ],
-                    routerName: [
-                        { required: true, message: '必须填写路由名哦！', trigger: 'blur' },
-                    ]
-                },
-            },
-
-            created() {
-            },
-
-            computed: {
-                // 业务设计面包屑
-                serviceDesignBreadcrumb() {
-                    return this.serviceDesignSteps.slice(0,this.curServiceDesignStep)
-                },
-                // 业务设计列表数据
-                serviceDesignList() {
-                    return this.curServiceDesignStep === 1 ? this.serviceDesignDatas : this.searchServiceDesignData(this.selectedDesignNames[this.curServiceDesignStep - 2]).children
-                },
-                // 指定接口数据
-                APIData() {
-                    let data = {}
-                    if(this.selectedDesignNames[2]) {
-                        data = this.searchServiceDesignData(this.selectedDesignNames[2])
-                    }
-                    return data
-                }
-            },
-
-            methods: {
-                /**
-                 * 新增数据库配置
-                */
-               async addDBConfig() {
-                    await this.$refs['dbConfigForm'].validate()
-                    flag = await this.$refs['dbConfigForm'].validate()
-                    if(!flag) return
-                    this.dbConfigList.push(JSON.parse(JSON.stringify(this.dbConfigForm)))
-                    this.isDBConfigDialogShow = false
-               },
-
-                /**
-                 * 关闭数据库配置弹窗触发
-                */
-                onDBConfigDialogClose() {
-                    this.$refs['dbConfigForm'].resetFields()
-                    this.isDBConfigDialogShow = false
-                },
-
-                /**
-                 * 完成基本信息
-                */
-                async finishBaseInfo() {
-                    await this.$refs['baseInfoForm'].validate()
-                    flag = await this.$refs['baseInfoForm'].validate()
-                    if(!flag) return
-                    console.log('baseInfoForm',this.baseInfoForm)
-                    this.curConfigStep ++
-                },
-
-                /**
-                 * 完成服务配置
-                */
-                finishServerConfig() {
-                    console.log('serverConfigForm',this.serverConfigForm)
-                    console.log('dbConfigList',this.dbConfigList)
-                    console.log('selectedExtends',this.selectedExtends)
-                    this.curConfigStep ++
-                },
-
-                /**
-                 * 获取指定业务设计项下的业务设计数据
-                 * @param {String} name 指定业务设计项名
-                 * @param {String} list 起始层业务设计数据列表
-                */
-               searchServiceDesignData(name, list) {
-                    let originList = list || this.serviceDesignDatas
-                    for(let item of originList) {
-                        if(item.name === name) {
-                            return item
-                            break
-                        }
-                        if(item.children) {
-                            const res = this.searchServiceDesignData(name, item.children)
-                            if(res) {
-                                return res
-                                break
-                            }
-                        }
-                    }
-                    return null
-               },
-
-               /**
-                * 面包屑跳转
-               */
-               breadcrumbJump(step) {
-                    this.curServiceDesignStep = step
-               },
-
-               /**
-                * 下一步业务设计
-               */
-               nextSeviceDesign(name) {
-                   this.selectedDesignNames[this.curServiceDesignStep - 1] = name
-                   this.curServiceDesignStep++
-               },
-
-               /**
-                * 预览接口
-               */
-               reviewAPI(name) {
-                   this.selectedDesignNames.splice(this.curServiceDesignStep - 1,1,name)
-               },
-
-               /**
-                * 新增业务设计项
-               */
-               addSeviceDesignItem() {
-                   if(!(/^\w+$/.test(this.newDesignName))) {
-                        this.$message.error(`${this.serviceDesignBreadcrumb[this.serviceDesignBreadcrumb.length - 1]}名只允许单词字符哦`);
-                        return
-                   }
-                    if(this.curServiceDesignStep === 1) {
-                        this.serviceDesignDatas.push({
-                            name: this.newDesignName,
-                            children: []
-                        })
-                    } else {
-                        for(let item of this.serviceDesignDatas) {
-                            if(item.name === this.selectedDesignNames[0]) {
-                                item.children.push({
-                                    name: this.newDesignName,
-                                    children: []
-                                })
-                                break
-                            }
-                        }
-                    }
-                    // this.nextSeviceDesign(this.newDesignName)
-                    this.newDesignName = ''
-               },
-
-               /**
-                * 新增接口设计
-               */
-               async addAPIDesign() {
-                   await this.$refs['APIDesignForm'].validate()
-                   flag = await this.$refs['APIDesignForm'].validate()
-                   if(!flag) return
-                   console.log('APIDesignForm',this.APIDesignForm)
-                   for(let ns of this.serviceDesignDatas) {
-                       if(ns.name === this.selectedDesignNames[0]) {
-                           for(let module of ns.children) {
-                               if(module.name === this.selectedDesignNames[1]) {
-                                   module.children.push({
-                                       name: this.APIDesignForm.name,
-                                       description: this.APIDesignForm.description,
-                                       needAuth: this.APIDesignForm.needAuth,
-                                       routerName: this.APIDesignForm.routerName,
-                                       methods: this.APIDesignForm.methods,
-                                       requiredParams: this.APIDesignForm.requiredParams.split(/\s/).filter(item => !!item),
-                                       notRequiredParams: this.APIDesignForm.notRequiredParams.split(/\s/).filter(item => !!item),
-                                       expectResponse: this.APIDesignForm.expectResponse.split(/\s/).filter(item => !!item)
-                                   })
-                                   console.log('serviceDesignDatas',module.children[module.children.length - 1])
-                                   break
-                               }
-                           }
-                       }
-                       break
-                   }
-                   this.isAPIDesignDialogShow = false
-               },
-   
-               /**
-                * 关闭接口设计弹窗触发
-               */
-               onAPIDesignDialogClose() {
-                   this.$refs['APIDesignForm'].resetFields()
-                   this.isAPIDesignDialogShow = false
-               },
-
-               /**
-                * 获取文件列表
-               */
-               async getFileList(path) {
-                    const p = path || this.baseInfoForm.projectSavePath 
-                    const result = await axios.get(`${HOST}/files${p?'?path='+encodeURIComponent(p):''}`)
-                        .then(res=>res.data)
-                        .catch(err=>err.response.data)
-                    if(result.status === 0) {
-                        this.savePath = result.currentPath
-                        this.fileList = result.files
-                        this.isWin = result.isWin
-                    }
-                },
-
-                /**
-                 * 打开目录
-                */
-                openDir(file) {
-                    if(!file.isDir) {
-                        return
-                    }
-                    let path = ""
-                    if(this.isWin) {
-                        path = `${this.savePath}${/^\w{1}:\\$/.test(this.savePath) ? '' : '\\'}${file.name}`
-                    } else {
-                        path = `${this.savePath}${this.savePath === '/' ? '' : '/'}${file.name}`
-                    }
-                    this.getFileList(path)
-                },
-
-                /**
-                 * 返回上一级目录
-                */
-                goBack() {
-                    let pathSplit = []
-                    if(this.isWin) {
-                        pathSplit = this.savePath.split('\\')
-                    } else {
-                        pathSplit = this.savePath.split('/')
-                    }
-                    if(!pathSplit[1]) {
-                        return
-                    }
-                    pathSplit.splice(-1,1)
-                    let path = ''
-                    if(this.isWin) {
-                        path = `${pathSplit.length>1?'':'\\'}${pathSplit.join('\\')}`
-                    } else {
-                        path = `${pathSplit.length>1?'':'/'}${pathSplit.join('/')}`
-                    }
-                    this.getFileList(path)
-                },
-
-                /**
-                 * 确认保存路径
-                */
-                confirmSavePath() {
-                    console.log('savePath',this.savePath)
-                    this.baseInfoForm.projectSavePath = this.savePath
-                    console.log('baseInfoForm',this.baseInfoForm.projectSavePath)
-                    this.isPathChoiseDialogShow = false
-                }
-            }
-        })
-    </script>
+    <script src="./script/index.js"></script>
 </body>
 </html>
