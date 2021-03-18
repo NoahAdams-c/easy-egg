@@ -7,9 +7,9 @@ new Vue({
 		// 是否为windows平台
 		isWin: false,
 		// 是否确认创建项目
-		isConfirmNewProject: true,
+		isConfirmNewProject: false,
 		// 当前配置步骤
-		curConfigStep: 4,
+		curConfigStep: 1,
 		// 目录选择文件列表
 		fileList: [],
 		// 选择的保存目录
@@ -143,91 +143,91 @@ new Vue({
 		selectedDesignNames: [],
 		// 业务设计数据(三层树状结构，依次为命名空间、模块、接口方法)
 		serviceDesignDatas: [
-			{
-				name: "v2",
-				children: [
-					{
-						name: "user",
-						children: [
-							{
-								name: "doRegist",
-								description: "用户注册",
-								needAuth: false,
-								routerName: "regist",
-								methods: "post",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							},
-							{
-								name: "doLogin",
-								description: "用户登录",
-								needAuth: false,
-								routerName: "login",
-								methods: "post",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							}
-						]
-					},
-					{
-						name: "redlist",
-						children: [
-							{
-								name: "getRedList",
-								description: "获取红名单列表",
-								needAuth: true,
-								routerName: "list",
-								methods: "get",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							},
-							{
-								name: "updRedList",
-								description: "修改红名单列表",
-								needAuth: true,
-								routerName: "upd",
-								methods: "put",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							}
-						]
-					}
-				]
-			},
-			{
-				name: "v3",
-				children: [
-					{
-						name: "development",
-						children: [
-							{
-								name: "doRegist",
-								description: "发展人注册",
-								needAuth: false,
-								routerName: "regist",
-								methods: "post",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							},
-							{
-								name: "doLogin",
-								description: "发展人登录",
-								needAuth: false,
-								routerName: "login",
-								methods: "post",
-								requiredParams: "",
-								notRequiredParams: "",
-								expectResponse: ""
-							}
-						]
-					}
-				]
-			}
+			// {
+			// 	name: "v2",
+			// 	children: [
+			// 		{
+			// 			name: "user",
+			// 			children: [
+			// 				{
+			// 					name: "doRegist",
+			// 					description: "用户注册",
+			// 					needAuth: false,
+			// 					routerName: "regist",
+			// 					methods: "post",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				},
+			// 				{
+			// 					name: "doLogin",
+			// 					description: "用户登录",
+			// 					needAuth: false,
+			// 					routerName: "login",
+			// 					methods: "post",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				}
+			// 			]
+			// 		},
+			// 		{
+			// 			name: "redlist",
+			// 			children: [
+			// 				{
+			// 					name: "getRedList",
+			// 					description: "获取红名单列表",
+			// 					needAuth: true,
+			// 					routerName: "list",
+			// 					methods: "get",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				},
+			// 				{
+			// 					name: "updRedList",
+			// 					description: "修改红名单列表",
+			// 					needAuth: true,
+			// 					routerName: "upd",
+			// 					methods: "put",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				}
+			// 			]
+			// 		}
+			// 	]
+			// },
+			// {
+			// 	name: "v3",
+			// 	children: [
+			// 		{
+			// 			name: "development",
+			// 			children: [
+			// 				{
+			// 					name: "doRegist",
+			// 					description: "发展人注册",
+			// 					needAuth: false,
+			// 					routerName: "regist",
+			// 					methods: "post",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				},
+			// 				{
+			// 					name: "doLogin",
+			// 					description: "发展人登录",
+			// 					needAuth: false,
+			// 					routerName: "login",
+			// 					methods: "post",
+			// 					requiredParams: "",
+			// 					notRequiredParams: "",
+			// 					expectResponse: ""
+			// 				}
+			// 			]
+			// 		}
+			// 	]
+			// }
 		],
 		// 接口设计表单弹窗是否显示
 		isAPIDesignDialogShow: false,
@@ -405,6 +405,7 @@ new Vue({
 		 */
 		editAPI(name) {
 			this.selectedDesignNames.splice(2, 1, name)
+			console.log(this.APIData)
 			this.APIDesignForm = {
 				name: this.APIData.name,
 				description: this.APIData.description,

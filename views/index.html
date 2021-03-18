@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-17 17:45:16
+ * @LastEditTime: 2021-03-18 14:51:59
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -383,7 +383,9 @@ module.exports = app => {
             @open="getFileList()"
             @close="isPathChoiseDialogShow = false">
             <div class="file-header">
-                <div class="file-header__path">{{savePath}}</div>
+                <el-tooltip :content="savePath" placement="top" effect="dark">
+                    <div class="file-header__path">{{savePath}}</div>
+                </el-tooltip>
                 <div class="file-header__back"><i class="el-icon-back" @click="goBack"></i></div>
             </div>
             <div class="file-explorer">

@@ -13,7 +13,8 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    direction: rtl;
+    cursor:default;
+    /* direction: rtl; */
 }
 .file-header__back {
     flex: 1;
@@ -252,10 +253,10 @@
     left: calc(100% + 50px);
 }
 .config-preview__nav.unfold {
-    animation: navUnfoldMove 1s ease-in-out forwards;
+    animation: navUnfoldMove .8s ease-in-out forwards;
 }
 .config-preview__nav.fold {
-    animation: navFoldMove 1s ease-in-out forwards;
+    animation: navFoldMove .8s ease-in-out forwards;
 }
 .config-preview__nav .nav-list .nav-list__item {
     box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
