@@ -3,7 +3,7 @@
  * @Author: OBKoro1
  * @Date: 2021-03-18 16:23:43
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 15:26:39
+ * @LastEditTime: 2021-03-22 15:35:58
  */
 /**
  * @Description: 项目构建
@@ -50,7 +50,7 @@ class Structure {
 		// 复制一些固定的配置文件
 		ChildProcess.execSync(
 			`${this.isWin ? "copy" : "cp -r"} ${Path.join(
-				process.cwd(),
+				__dirname,
 				"model",
 				"resources"
 			)}${this.isWin ? "\\" : "/"}. ${Path.join(
@@ -66,7 +66,7 @@ class Structure {
 		// 复制中间件
 		ChildProcess.execSync(
 			`${this.isWin ? "copy" : "cp -r"} ${Path.join(
-				process.cwd(),
+				__dirname,
 				"model",
 				"middleware"
 			)}${this.isWin ? "\\" : "/"}. ${Path.join(
@@ -79,7 +79,7 @@ class Structure {
 		// 复制框架扩展
 		ChildProcess.execSync(
 			`${this.isWin ? "copy" : "cp -r"} ${Path.join(
-				process.cwd(),
+				__dirname,
 				"model",
 				"frame_extend"
 			)}${this.isWin ? "\\" : "/"}. ${Path.join(
