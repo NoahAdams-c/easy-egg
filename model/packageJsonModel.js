@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-19 18:02:05
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 14:13:45
+ * @LastEditTime: 2021-03-22 16:04:44
  */
 const origin = {
 	name: "",
@@ -37,10 +37,8 @@ const origin = {
 		node: ">=8.0.0"
 	},
 	scripts: {
-		dev: "EGG_SERVER_ENV=local egg-bin dev",
-		prod: "EGG_SERVER_ENV=prod egg-bin dev --NODE_ENV=prod",
-		pm2dev: "EGG_SERVER_ENV=local node server.js",
-		pm2prod: "EGG_SERVER_ENV=prod node server.prod.js",
+		pm2dev: "node server.js",
+		pm2prod: "node server.prod.js",
 		autod: "autod",
 		lint: "eslint .",
 		test: "egg-bin test",
@@ -59,11 +57,17 @@ const origin = {
 	files: ["lib", "index.js"]
 }
 
-module.exports = (props) => {
+module.exports = (props, isWin) => {
 	origin.name = props.name
 	origin.author = props.author
 	origin.description = props.description
 	origin.repository.url = props.repository
+	origin.scripts.dev = isWin
+		? "egg-bin dev --env=local"
+		: "EGG_SERVER_ENV=local egg-bin dev"
+	origin.scripts.prod = isWin
+		? "egg-bin dev --env=prod"
+		: "EGG_SERVER_ENV=prod egg-bin dev"
 	if (props.extends.includes("consul")) {
 		origin.dependencies["consul"] = "^0.40.0"
 	}

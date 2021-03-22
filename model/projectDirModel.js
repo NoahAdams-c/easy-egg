@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-19 10:47:27
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 13:51:05
+ * @LastEditTime: 2021-03-22 16:04:52
  */
 module.exports = (props) => {
 	const modelsDir = props.databases.map((item) => {
@@ -36,7 +36,7 @@ module.exports = (props) => {
 					children: namespacesDir
 				},
 				{
-					name: "extends",
+					name: "extend",
 					children: []
 				},
 				{

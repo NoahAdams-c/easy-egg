@@ -3,7 +3,7 @@
  * @Author: OBKoro1
  * @Date: 2021-03-18 16:23:43
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 15:35:58
+ * @LastEditTime: 2021-03-22 16:05:09
  */
 /**
  * @Description: 项目构建
@@ -61,7 +61,11 @@ class Structure {
 		// 生产包配置文件
 		Fs.writeFileSync(
 			Path.join(this.config.root, this.config.name, "package.json"),
-			JSON.stringify(genPackageJson(this.config), undefined, 2)
+			JSON.stringify(
+				genPackageJson(this.config, this.isWin),
+				undefined,
+				2
+			)
 		)
 		// 复制中间件
 		ChildProcess.execSync(
@@ -86,7 +90,7 @@ class Structure {
 				this.config.root,
 				this.config.name,
 				"app",
-				"extends"
+				"extend"
 			)}`
 		)
 	}
