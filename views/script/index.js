@@ -18,6 +18,7 @@ new Vue({
 		isPathChoiseDialogShow: false,
 		// 项目基本信息表单对象
 		baseInfoForm: {
+			projectKeys: "",
 			projectName: "",
 			projectAuthor: "",
 			projectDescrption: "",
@@ -60,22 +61,22 @@ new Vue({
 		isDBConfigDialogShow: false,
 		// 数据库配置表单对象
 		dbConfigForm: {
-			userName: "root",
-			password: "960904",
-			dbName: "D_TEST",
+			username: "",
+			password: "",
+			database: "",
 			host: "127.0.0.1",
-			port: "6379"
+			port: "3306"
 		},
 		// 数据库配置表单验证规则
 		dbConfigRules: {
-			userName: [
+			username: [
 				{
 					required: true,
 					message: "必须填写数据库登录用户名哦！",
 					trigger: "change"
 				}
 			],
-			dbName: [
+			database: [
 				{
 					required: true,
 					message: "必须填写数据库名哦！",
@@ -99,27 +100,33 @@ new Vue({
 			},
 			{
 				key: "jwt",
-				label: "JWT鉴权"
+				label: "JWT鉴权",
+				disabled: true
 			},
 			{
 				key: "errorhandler",
-				label: "全局错误捕捉中间件"
+				label: "全局错误捕捉中间件",
+				disabled: true
 			},
 			{
 				key: "contexthandler",
-				label: "请求上下文中间件"
+				label: "请求上下文中间件",
+				disabled: true
 			},
 			{
 				key: "checkparams",
-				label: "参数检测中间件"
+				label: "参数检测中间件",
+				disabled: true
 			},
 			{
 				key: "checkauth",
-				label: "鉴权检测中间件"
+				label: "鉴权检测中间件",
+				disabled: true
 			},
 			{
 				key: "unittest",
-				label: "单元测试"
+				label: "单元测试",
+				disabled: true
 			},
 			{
 				key: "remotelogger",
@@ -132,7 +139,15 @@ new Vue({
 			}
 		],
 		// 已选插件扩展
-		selectedExtends: ["sequelize", "remotelogger"],
+		selectedExtends: [
+			"jwt",
+			"sequelize",
+			"errorhandler",
+			"contexthandler",
+			"checkparams",
+			"checkauth",
+			"remotelogger"
+		],
 		// 业务设计步骤
 		serviceDesignSteps: ["命名空间", "模块", "接口方法"],
 		// 业务设计当前所在步骤
@@ -143,91 +158,91 @@ new Vue({
 		selectedDesignNames: [],
 		// 业务设计数据(三层树状结构，依次为命名空间、模块、接口方法)
 		serviceDesignDatas: [
-			// {
-			// 	name: "v2",
-			// 	children: [
-			// 		{
-			// 			name: "user",
-			// 			children: [
-			// 				{
-			// 					name: "doRegist",
-			// 					description: "用户注册",
-			// 					needAuth: false,
-			// 					routerName: "regist",
-			// 					methods: "post",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				},
-			// 				{
-			// 					name: "doLogin",
-			// 					description: "用户登录",
-			// 					needAuth: false,
-			// 					routerName: "login",
-			// 					methods: "post",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				}
-			// 			]
-			// 		},
-			// 		{
-			// 			name: "redlist",
-			// 			children: [
-			// 				{
-			// 					name: "getRedList",
-			// 					description: "获取红名单列表",
-			// 					needAuth: true,
-			// 					routerName: "list",
-			// 					methods: "get",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				},
-			// 				{
-			// 					name: "updRedList",
-			// 					description: "修改红名单列表",
-			// 					needAuth: true,
-			// 					routerName: "upd",
-			// 					methods: "put",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				}
-			// 			]
-			// 		}
-			// 	]
-			// },
-			// {
-			// 	name: "v3",
-			// 	children: [
-			// 		{
-			// 			name: "development",
-			// 			children: [
-			// 				{
-			// 					name: "doRegist",
-			// 					description: "发展人注册",
-			// 					needAuth: false,
-			// 					routerName: "regist",
-			// 					methods: "post",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				},
-			// 				{
-			// 					name: "doLogin",
-			// 					description: "发展人登录",
-			// 					needAuth: false,
-			// 					routerName: "login",
-			// 					methods: "post",
-			// 					requiredParams: "",
-			// 					notRequiredParams: "",
-			// 					expectResponse: ""
-			// 				}
-			// 			]
-			// 		}
-			// 	]
-			// }
+			{
+				name: "v2",
+				children: [
+					{
+						name: "user",
+						children: [
+							{
+								name: "doRegist",
+								description: "用户注册",
+								needAuth: false,
+								routerName: "regist",
+								methods: "post",
+								requiredParams: ["username", "password"],
+								notRequiredParams: [],
+								expectResponse: ["token"]
+							},
+							{
+								name: "doLogin",
+								description: "用户登录",
+								needAuth: false,
+								routerName: "login",
+								methods: "post",
+								requiredParams: [],
+								notRequiredParams: [],
+								expectResponse: []
+							}
+						]
+					},
+					{
+						name: "redlist",
+						children: [
+							{
+								name: "getRedList",
+								description: "获取红名单列表",
+								needAuth: true,
+								routerName: "list",
+								methods: "get",
+								requiredParams: [],
+								notRequiredParams: [],
+								expectResponse: []
+							},
+							{
+								name: "updRedList",
+								description: "修改红名单列表",
+								needAuth: true,
+								routerName: "upd",
+								methods: "put",
+								requiredParams: [],
+								notRequiredParams: [],
+								expectResponse: []
+							}
+						]
+					}
+				]
+			},
+			{
+				name: "v3",
+				children: [
+					{
+						name: "development",
+						children: [
+							{
+								name: "doRegist",
+								description: "发展人注册",
+								needAuth: false,
+								routerName: "regist",
+								methods: "post",
+								requiredParams: [],
+								notRequiredParams: [],
+								expectResponse: []
+							},
+							{
+								name: "doLogin",
+								description: "发展人登录",
+								needAuth: false,
+								routerName: "login",
+								methods: "post",
+								requiredParams: [],
+								notRequiredParams: [],
+								expectResponse: []
+							}
+						]
+					}
+				]
+			}
 		],
 		// 接口设计表单弹窗是否显示
 		isAPIDesignDialogShow: false,
@@ -267,7 +282,13 @@ new Vue({
 			]
 		},
 		// 配置预览导航是否展开
-		isPreviewNavUnfold: null
+		isPreviewNavUnfold: null,
+		// 生成项目进度弹窗是否显示
+		isProgressDialogShow: false,
+		// 当前项目生成进度
+		genProjectPercentage: 0,
+		// 当前项目生成状态
+		genProjectStatus: "success"
 	},
 
 	created() {},
@@ -304,7 +325,15 @@ new Vue({
 			flag = await this.$refs["dbConfigForm"].validate()
 			if (!flag) return
 			this.dbConfigList.push(
-				JSON.parse(JSON.stringify(this.dbConfigForm))
+				JSON.parse(
+					JSON.stringify({
+						...this.dbConfigForm,
+						delegate: `${this.dbConfigForm.database.toLowerCase()}Model`,
+						baseDir: `${this.dbConfigForm.database.toLowerCase()}_model`,
+						dialect: "mysql",
+						timezone: "+08:00"
+					})
+				)
 			)
 			this.isDBConfigDialogShow = false
 		},
@@ -324,6 +353,9 @@ new Vue({
 			await this.$refs["baseInfoForm"].validate()
 			flag = await this.$refs["baseInfoForm"].validate()
 			if (!flag) return
+			this.baseInfoForm.projectKeys = `${
+				this.baseInfoForm.projectName
+			}_${Date.now()}`
 			console.log("baseInfoForm", this.baseInfoForm)
 			this.curConfigStep++
 		},
@@ -332,6 +364,11 @@ new Vue({
 		 * 完成服务配置
 		 */
 		finishServerConfig() {
+			if (!this.dbConfigList.length) {
+				this.$message.error("请至少配置一个数据源哦")
+				this.configCollapseActives = ["DBConfig"]
+				return
+			}
 			console.log("serverConfigForm", this.serverConfigForm)
 			console.log("dbConfigList", this.dbConfigList)
 			console.log("selectedExtends", this.selectedExtends)
@@ -619,6 +656,58 @@ new Vue({
 			this.baseInfoForm.projectSavePath = this.savePath
 			console.log("baseInfoForm", this.baseInfoForm.projectSavePath)
 			this.isPathChoiseDialogShow = false
+		},
+
+		/**
+		 * 构建项目
+		 */
+		async structProject() {
+			this.isProgressDialogShow = true
+			await axios
+				.post(`${HOST}/project/instance`, {
+					root: this.baseInfoForm.projectSavePath,
+					name: this.baseInfoForm.projectName,
+					author: this.baseInfoForm.projectAuthor,
+					description: this.baseInfoForm.projectDescrption,
+					repository: this.baseInfoForm.projectRepository,
+					type: this.baseInfoForm.projectType,
+					keys: this.baseInfoForm.projectKeys,
+					port: this.serverConfigForm.serverPort,
+					whiteList: this.serverConfigForm.serverWhiteList
+						.split(/\s/)
+						.filter((item) => !!item),
+					databases: this.dbConfigList,
+					extends: this.selectedExtends,
+					serviceDesignDatas: this.serviceDesignDatas
+				})
+				.then((res) => res.data)
+				.catch((err) => err.response.data)
+			this.genProjectPercentage = 25
+			await axios
+				.post(`${HOST}/project/init`)
+				.then((res) => res.data)
+				.catch((err) => err.response.data)
+			this.genProjectPercentage = 50
+			await axios
+				.post(`${HOST}/project/config`)
+				.then((res) => res.data)
+				.catch((err) => err.response.data)
+			this.genProjectPercentage = 75
+			await axios
+				.post(`${HOST}/project/api`)
+				.then((res) => res.data)
+				.catch((err) => err.response.data)
+			this.genProjectPercentage = 100
+			setTimeout(() => {
+				this.$alert("项目创建完成!", "Congratulations", {
+					confirmButtonText: "确定",
+					center: true,
+					callback: (action) => {
+						this.genProjectPercentage = 0
+						this.isProgressDialogShow = false
+					}
+				})
+			}, 500)
 		}
 	}
 })

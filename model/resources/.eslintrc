@@ -1,0 +1,32 @@
+{
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "eslint-config-egg",
+    "standard",
+    "prettier",
+    "plugin:node/recommended"
+  ],
+  "plugins": ["standard", "prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "accessor-pairs": "off",
+    "semi": [0, "always"],
+    "quotes": [2, "single"],
+    "no-multiple-empty-lines": "error",
+    "no-var": "error",
+    "no-template-curly-in-string": "off",
+    "node/no-deprecated-api": "off",
+    "camelcase": "off",
+    "no-bitwise": "off",
+    "no-case-declarations": "off",
+    "no-new": "off",
+    "new-cap": "off",
+    "no-unmodified-loop-condition": "off",
+    "no-loop-func": "off",
+    "prefer-promise-reject-errors": "off"
+  }
+}

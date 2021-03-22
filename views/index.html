@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-18 14:51:59
+ * @LastEditTime: 2021-03-22 15:02:02
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -95,7 +95,7 @@
                                     </el-form-item>
                                     <el-form-item prop="projectType" label="项目类型">
                                         <el-radio v-model="baseInfoForm.projectType" label="http">HTTP</el-radio>
-                                        <el-radio v-model="baseInfoForm.projectType" label="socket">SOCKET</el-radio>
+                                        <el-radio v-model="baseInfoForm.projectType" label="socket" disabled>SOCKET（暂未支持）</el-radio>
                                     </el-form-item>
                                     <el-form-item class="form-button-bar">
                                         <el-button type="primary" size="default" @click="finishBaseInfo">下一步</el-button>
@@ -133,12 +133,13 @@
                                         <template slot="title">
                                             <div class="collapse-title">数据库配置</div>
                                         </template>
+                                        <div>第一个数据源将配置为sequlize的默认数据源</div>
                                         <div class="db-config">
                                             <div v-for="(item,index) in dbConfigList" 
                                                     :key="index" 
                                                     class="db-config__item">
-                                                <div class="db-config__item--dbname"><i class="el-icon-coin"></i>{{item.dbName}}</div>
-                                                <div class="db-config__item--username"><i class="el-icon-user"></i>{{item.userName}}</div>
+                                                <div class="db-config__item--dbname"><i class="el-icon-coin"></i>{{item.database}}</div>
+                                                <div class="db-config__item--username"><i class="el-icon-user"></i>{{item.username}}</div>
                                                 <div class="db-config__item--host"><i class="el-icon-connection"></i>{{item.host}}:{{item.port}}</div>
                                             </div>
                                             <div class="db-config__item new-item" @click="isDBConfigDialogShow = true">
@@ -222,7 +223,8 @@
  * @Description {{APIData.description}}
  * @Router {{APIData.methods}} /{{selectedDesignNames[0]}}/{{selectedDesignNames[1]}}/{{APIData.routerName}}{{APIData.needAuth?'\n * @Request header { Authorization }':''}}
  * @Request {{APIData.methods === 'get'?'query':'body'}} { {{APIData.requiredParams.join(', ')}}{{APIData.notRequiredParams.length?'[, '+APIData.notRequiredParams.join(', ')+' ]':''}} }
- * @Response 200 { {{APIData.expectResponse.join(', ')}} }
+ * @Response 200 { errcode, errmsg{{APIData.expectResponse.length?', '+APIData.expectResponse.join(', '):''}} }
+ * @Response 400 { errcode, errmsg }
  */
 </pre>
                                     </template>
@@ -254,7 +256,8 @@ const path = require('path')
 // 引入访问白名单配置
 const domainWhiteList = require('./domainWhiteList.json')
 // 引入数据库配置
-const dbConfig = require('./database.js')
+const dbConfig = require('./database.json')
+const { development:dbDefault } = require('../database/config.json')
 
 module.exports = appInfo => {
     const config = {}
@@ -265,12 +268,18 @@ module.exports = appInfo => {
             port: {{serverConfigForm.serverPort}}
         }
     }
-    config.keys = 'eyuai_1571574897147_9520'
+    config.keys = '{{baseInfoForm.projectKeys}}'
     // 中间件配置
     config.middleware = [{{selectedExtends.includes('consul') ? "'consulHandler',":""}}{{selectedExtends.includes('contexthandler') ? "'contexthandler',":""}}{{selectedExtends.includes('errorhandler') ? "'errorhandler',":""}}]
     // sequelize配置
     config.sequelize = {
-        datasources: dbConfig
+        datasources: [
+            {
+                ...dbDefault,
+                timezone: "+08:00"
+            },
+            ...dbConfig
+        ]
     }
     config.onerror = {
         html(ctx, err) {
@@ -315,20 +324,34 @@ module.exports = appInfo => {
 </pre>
                                     </div>
                                     <div class="preview-item">
-                                        <div id="dbConfig" class="preview-item__title">config/database.js（数据库配置文件）</div>
+                                        <div id="dbConfig" class="preview-item__title">database/config.json（默认数据源配置文件）</div>
                                         <pre>
-module.exports = [
-    <template v-for="(item,index) in dbConfigList" :key="index">{
-        delegate: '{{item.dbName.toLowerCase()}}Model',
-        baseDir: '{{item.dbName.toLowerCase()}}_model',
-        dialect: 'mysql',
-        host: '{{item.host}}',
-        port: {{item.port}},
-        database: '{{item.dbName}}',
-        username: 'item.userName',
-        password: '{{item.password}}',
-        timezone: '+08:00',
-        loggin: true
+{
+    "development": {
+        "username": "{{dbConfigList[0].username}}",
+        "password": "{{dbConfigList[0].password}}",
+        "database": "{{dbConfigList[0].database}}",
+        "host": "{{dbConfigList[0].host}}",
+        "port": "{{dbConfigList[0].port}}",
+        "dialect": "mysql"
+    }
+}
+</pre>
+                                    </div>
+                                    <div class="preview-item">
+                                        <div class="preview-item__title">config/databases.json（扩展数据源配置文件）</div>
+                                        <pre>
+[
+    <template v-for="(item,index) in dbConfigList.slice(1)" :key="index">{
+        "delegate": "{{item.delegate}}",
+        "baseDir": "{{item.baseDir}}",
+        "dialect": "{{item.dialect}}",
+        "host": "{{item.host}}",
+        "port": {{item.port}},
+        "database": "{{item.database}}",
+        "username": "item.username",
+        "password": "{{item.password}}",
+        "timezone": "{{item.timezone}}"
     },</template>
 ]
 </pre>
@@ -347,8 +370,12 @@ module.exports = app => {
                                         <pre>
 module.exports = app => {
     const { router, controller } = app;
+    // 授权中间件
+    const checkAuth = middleware.checkAuth()
+    // 参数检测中间件
+    const cp = middleware.checkParams
     <template v-for="(m,j) in ns.children" :key="j">// {{m.name}}
-    <template v-for="(api,k) in m.children" :key="k">router.{{api.methods}}('/{{ns.name}}/{{m.name}}/{{api.routerName}}', controller.{{m.name}}.{{api.name}}) // {{api.description}}
+    <template v-for="(api,k) in m.children" :key="k">router.{{api.methods}}('/{{ns.name}}/{{m.name}}/{{api.routerName}}', {{api.needAuth?'checkAuth, ':''}}{{api.requiredParams.length?'cp('+JSON.stringify(api.requiredParams)+'), ':''}}controller.{{m.name}}.{{api.name}}) // {{api.description}}
     </template>
     </template>
 }
@@ -357,7 +384,7 @@ module.exports = app => {
                                 </div>
                                 <div class="button-bar">
                                     <el-button type="primary" size="default" @click="curConfigStep--">上一步</el-button>
-                                    <el-button type="primary" size="default" @click="">确认无误，开始创建</el-button>
+                                    <el-button type="primary" size="default" @click="structProject">确认无误，开始创建</el-button>
                                 </div>
                             </template>
                         </div>
@@ -379,7 +406,7 @@ module.exports = app => {
             title="选择目录"
             :visible.sync="isPathChoiseDialogShow"
             width="50%"
-            close-on-click-modal="false"
+            :close-on-click-modal="false"
             @open="getFileList()"
             @close="isPathChoiseDialogShow = false">
             <div class="file-header">
@@ -407,7 +434,7 @@ module.exports = app => {
             title="数据库配置"
             :visible.sync="isDBConfigDialogShow"
             width="30%"
-            close-on-click-modal="false"
+            :close-on-click-modal="false"
             @close="onDBConfigDialogClose">
             <el-form :model="dbConfigForm" 
                             ref="dbConfigForm" 
@@ -416,14 +443,14 @@ module.exports = app => {
                             label-position="top" 
                             :inline="false" 
                             size="normal">
-                <el-form-item prop="userName" label="登录用户名">
-                    <el-input v-model="dbConfigForm.userName"></el-input>
+                <el-form-item prop="username" label="登录用户名">
+                    <el-input v-model="dbConfigForm.username"></el-input>
                 </el-form-item>
                 <el-form-item prop="password" label="登录密码">
                     <el-input v-model="dbConfigForm.password"></el-input>
                 </el-form-item>
-                <el-form-item prop="dbName" label="数据库名">
-                    <el-input v-model="dbConfigForm.dbName"></el-input>
+                <el-form-item prop="database" label="数据库名">
+                    <el-input v-model="dbConfigForm.database"></el-input>
                 </el-form-item>
                 <el-form-item prop="host" label="数据库地址">
                     <el-input v-model="dbConfigForm.host"></el-input>
@@ -443,7 +470,7 @@ module.exports = app => {
             title="接口设计"
             :visible.sync="isAPIDesignDialogShow"
             width="30%"
-            close-on-click-modal="false"
+            :close-on-click-modal="false"
             @close="onAPIDesignDialogClose">
             <el-form :model="APIDesignForm" 
                             ref="APIDesignForm" 
@@ -499,6 +526,18 @@ module.exports = app => {
                 <el-button type="primary" @click="addOrEditAPIDesign">确定</el-button>
             </span>
         </el-dialog>
+
+        <el-dialog
+            title="项目创建中"
+            :visible.sync="isProgressDialogShow"
+            width="30%"
+            :show-close="false"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            @close="isProgressDialogShow = false">
+            <el-progress :text-inside="true" :percentage="genProjectPercentage" :status="genProjectStatus" :stroke-width="26"></el-progress>
+        </el-dialog>
+        
 
         <!-- 项目配置预览导航 -->
         <div v-if="isConfirmNewProject && curConfigStep === 4" 
