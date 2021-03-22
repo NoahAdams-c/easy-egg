@@ -3,7 +3,7 @@
  * @Author: OBKoro1
  * @Date: 2021-03-18 16:23:43
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 14:10:03
+ * @LastEditTime: 2021-03-22 15:26:39
  */
 /**
  * @Description: 项目构建
@@ -86,7 +86,7 @@ class Structure {
 				this.config.root,
 				this.config.name,
 				"app",
-				"extend"
+				"extends"
 			)}`
 		)
 	}
