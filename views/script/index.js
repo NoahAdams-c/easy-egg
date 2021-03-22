@@ -158,91 +158,91 @@ new Vue({
 		selectedDesignNames: [],
 		// 业务设计数据(三层树状结构，依次为命名空间、模块、接口方法)
 		serviceDesignDatas: [
-			{
-				name: "v2",
-				children: [
-					{
-						name: "user",
-						children: [
-							{
-								name: "doRegist",
-								description: "用户注册",
-								needAuth: false,
-								routerName: "regist",
-								methods: "post",
-								requiredParams: ["username", "password"],
-								notRequiredParams: [],
-								expectResponse: ["token"]
-							},
-							{
-								name: "doLogin",
-								description: "用户登录",
-								needAuth: false,
-								routerName: "login",
-								methods: "post",
-								requiredParams: [],
-								notRequiredParams: [],
-								expectResponse: []
-							}
-						]
-					},
-					{
-						name: "redlist",
-						children: [
-							{
-								name: "getRedList",
-								description: "获取红名单列表",
-								needAuth: true,
-								routerName: "list",
-								methods: "get",
-								requiredParams: [],
-								notRequiredParams: [],
-								expectResponse: []
-							},
-							{
-								name: "updRedList",
-								description: "修改红名单列表",
-								needAuth: true,
-								routerName: "upd",
-								methods: "put",
-								requiredParams: [],
-								notRequiredParams: [],
-								expectResponse: []
-							}
-						]
-					}
-				]
-			},
-			{
-				name: "v3",
-				children: [
-					{
-						name: "development",
-						children: [
-							{
-								name: "doRegist",
-								description: "发展人注册",
-								needAuth: false,
-								routerName: "regist",
-								methods: "post",
-								requiredParams: [],
-								notRequiredParams: [],
-								expectResponse: []
-							},
-							{
-								name: "doLogin",
-								description: "发展人登录",
-								needAuth: false,
-								routerName: "login",
-								methods: "post",
-								requiredParams: [],
-								notRequiredParams: [],
-								expectResponse: []
-							}
-						]
-					}
-				]
-			}
+			// {
+			// 	name: "v2",
+			// 	children: [
+			// 		{
+			// 			name: "user",
+			// 			children: [
+			// 				{
+			// 					name: "doRegist",
+			// 					description: "用户注册",
+			// 					needAuth: false,
+			// 					routerName: "regist",
+			// 					methods: "post",
+			// 					requiredParams: ["username", "password"],
+			// 					notRequiredParams: [],
+			// 					expectResponse: ["token"]
+			// 				},
+			// 				{
+			// 					name: "doLogin",
+			// 					description: "用户登录",
+			// 					needAuth: false,
+			// 					routerName: "login",
+			// 					methods: "post",
+			// 					requiredParams: [],
+			// 					notRequiredParams: [],
+			// 					expectResponse: []
+			// 				}
+			// 			]
+			// 		},
+			// 		{
+			// 			name: "redlist",
+			// 			children: [
+			// 				{
+			// 					name: "getRedList",
+			// 					description: "获取红名单列表",
+			// 					needAuth: true,
+			// 					routerName: "list",
+			// 					methods: "get",
+			// 					requiredParams: [],
+			// 					notRequiredParams: [],
+			// 					expectResponse: []
+			// 				},
+			// 				{
+			// 					name: "updRedList",
+			// 					description: "修改红名单列表",
+			// 					needAuth: true,
+			// 					routerName: "upd",
+			// 					methods: "put",
+			// 					requiredParams: [],
+			// 					notRequiredParams: [],
+			// 					expectResponse: []
+			// 				}
+			// 			]
+			// 		}
+			// 	]
+			// },
+			// {
+			// 	name: "v3",
+			// 	children: [
+			// 		{
+			// 			name: "development",
+			// 			children: [
+			// 				{
+			// 					name: "doRegist",
+			// 					description: "发展人注册",
+			// 					needAuth: false,
+			// 					routerName: "regist",
+			// 					methods: "post",
+			// 					requiredParams: [],
+			// 					notRequiredParams: [],
+			// 					expectResponse: []
+			// 				},
+			// 				{
+			// 					name: "doLogin",
+			// 					description: "发展人登录",
+			// 					needAuth: false,
+			// 					routerName: "login",
+			// 					methods: "post",
+			// 					requiredParams: [],
+			// 					notRequiredParams: [],
+			// 					expectResponse: []
+			// 				}
+			// 			]
+			// 		}
+			// 	]
+			// }
 		],
 		// 接口设计表单弹窗是否显示
 		isAPIDesignDialogShow: false,
@@ -356,7 +356,7 @@ new Vue({
 			this.baseInfoForm.projectKeys = `${
 				this.baseInfoForm.projectName
 			}_${Date.now()}`
-			console.log("baseInfoForm", this.baseInfoForm)
+			// console.log("baseInfoForm", this.baseInfoForm)
 			this.curConfigStep++
 		},
 
@@ -369,9 +369,9 @@ new Vue({
 				this.configCollapseActives = ["DBConfig"]
 				return
 			}
-			console.log("serverConfigForm", this.serverConfigForm)
-			console.log("dbConfigList", this.dbConfigList)
-			console.log("selectedExtends", this.selectedExtends)
+			// console.log("serverConfigForm", this.serverConfigForm)
+			// console.log("dbConfigList", this.dbConfigList)
+			// console.log("selectedExtends", this.selectedExtends)
 			this.curConfigStep++
 		},
 
@@ -379,7 +379,7 @@ new Vue({
 		 * 完成业务设计
 		 */
 		finishServiceDesign() {
-			console.log("serviceDesignDatas", this.serviceDesignDatas)
+			// console.log("serviceDesignDatas", this.serviceDesignDatas)
 			this.curConfigStep++
 		},
 
@@ -442,7 +442,7 @@ new Vue({
 		 */
 		editAPI(name) {
 			this.selectedDesignNames.splice(2, 1, name)
-			console.log(this.APIData)
+			// console.log(this.APIData)
 			this.APIDesignForm = {
 				name: this.APIData.name,
 				description: this.APIData.description,
@@ -518,7 +518,7 @@ new Vue({
 			await this.$refs["APIDesignForm"].validate()
 			flag = await this.$refs["APIDesignForm"].validate()
 			if (!flag) return
-			console.log("APIDesignForm", this.APIDesignForm)
+			// console.log("APIDesignForm", this.APIDesignForm)
 			outerLoop: for (let ns of this.serviceDesignDatas) {
 				if (ns.name === this.selectedDesignNames[0]) {
 					for (let module of ns.children) {
@@ -652,9 +652,9 @@ new Vue({
 		 * 确认保存路径
 		 */
 		confirmSavePath() {
-			console.log("savePath", this.savePath)
+			// console.log("savePath", this.savePath)
 			this.baseInfoForm.projectSavePath = this.savePath
-			console.log("baseInfoForm", this.baseInfoForm.projectSavePath)
+			// console.log("baseInfoForm", this.baseInfoForm.projectSavePath)
 			this.isPathChoiseDialogShow = false
 		},
 
