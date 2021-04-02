@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-19 16:41:29
  * @LastEditors: chenchen
- * @LastEditTime: 2021-04-01 17:10:13
+ * @LastEditTime: 2021-04-02 14:45:35
  */
 module.exports = (props) => {
 	const consulConfig = props.extends.includes("consul")
@@ -44,6 +44,7 @@ module.exports = (props) => {
         }`
 		: ""
 	return `${consulConfig ? "const Consul = require('consul')" : ""}
+    const { set: _set } = require("lodash")
     class AppBootHook {
       constructor(app) {
         this.app = app
@@ -67,9 +68,10 @@ module.exports = (props) => {
     
       async didReady() {
         // 应用已经启动完毕
-        // 更新所有worker进程上的应用对象
-        this.app.messenger.on('updApplicationStorage', ({ key, val }) => {
-          this.app[key] = val
+        // 更新所有worker进程上的应用对象扩展
+        this.app.messenger.on("updApplicationStorage", ({ key, val }) => {
+          _set(this.app, key, val)
+          this.app.messenger.sendToApp("updApplicationStorageFinish")
         })
       }
     
