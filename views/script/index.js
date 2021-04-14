@@ -35,8 +35,9 @@ new Vue({
 					trigger: "change"
 				},
 				{
-					pattern: /^\w{4,20}$/,
-					message: "项目名称只能是4-20位单词字符哦！",
+					pattern: /^(\w|\-){4,20}$/,
+					message:
+						"项目名称必须由4-20位数字、字母、下划线、短杠组成哦！",
 					trigger: "change"
 				}
 			],
