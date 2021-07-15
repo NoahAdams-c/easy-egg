@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:17:03
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-15 14:23:37
+ * @LastEditTime: 2021-07-15 17:31:10
  */
 const express = require('express')
 const app = express()
@@ -64,6 +64,8 @@ module.exports = {
       const originPath = process.cwd()
       const target = 'eegg.conf.json'
       const findRes = findFile(originPath, target).map((item, index) => {
+        // 清除require缓存
+        delete require.cache[item]
         const info = require(item)
         return {
           path: path.join(info.root, info.name),

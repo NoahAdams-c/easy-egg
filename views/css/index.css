@@ -165,6 +165,7 @@
   left: 0;
 }
 .main-exist .el-row {
+  width: 100%;
   max-height: 400px;
   padding: 5px;
   overflow-y: auto;

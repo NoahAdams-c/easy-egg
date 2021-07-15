@@ -1,6 +1,6 @@
 {
   "name": "eegg",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A scaffold for Egg.js",
   "main": "index.js",
   "bin": {
