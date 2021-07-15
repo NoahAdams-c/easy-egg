@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 15:02:02
+ * @LastEditTime: 2021-07-15 15:23:52
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -38,8 +38,11 @@
                     <div class="title">
                         Easy&nbsp;&nbsp;Egg
                     </div>
+                    <div v-if="isConfirmNewProject || isConfirmEditProject" class="operation">
+                        <div class="operation-item" @click=" window.location.href = '/index.html' ">回到首页</div>
+                    </div>
                 </div>
-                <template v-if="isConfirmNewProject">
+                <template v-if="isConfirmNewProject || isConfirmEditProject">
                     <el-steps :active="curConfigStep" simple>
                         <el-step title="基本信息" description="" icon="el-icon-info"></el-step>
                         <el-step title="配置与扩展" description="" icon="el-icon-s-operation"></el-step>
@@ -51,8 +54,8 @@
 
             <!-- 页面主内容部分 -->
             <el-main>
-                <!-- 新建项目 -->
-                <template v-if="!isConfirmNewProject">
+                <template v-if="!isConfirmNewProject && !isConfirmEditProject">
+                    <!-- 新建项目 -->
                     <div class="main-new">
                         <div class="main-new__icon" @click="isConfirmNewProject = true">
                             <i class="el-icon-circle-plus-outline"></i>
@@ -60,6 +63,26 @@
                         <div class="main-new__tip">
                             点击创建新的Egg项目
                         </div>
+                    </div>
+                    <!-- 已存在项目 -->
+                    <div v-if="existsProjectsInfo.length" class="main-exist">
+                        <div class="main-exist__title">已有项目</div>
+                        <el-row :gutter="15">
+                            <el-col :span="12" v-for="(item,index) in existsProjectsInfo">
+                                <div @click="openExistProject(item)" class="main-exist__item" :style="{ 'background-color': item.type === 'http' ? '#9BFDFB' : '#FFD4A1' }">
+                                    <div class="item-title">{{item.name}}</div>
+                                    <div class="item-detail">
+                                        <span class="label">创建人:&nbsp;</span>
+                                        <span class="value">{{item.author}}</span>
+                                    </div>
+                                    <div class="item-detail">
+                                        <span class="label">类型:&nbsp;</span>
+                                        <span class="value">{{item.type}}</span>
+                                    </div>
+                                    <div class="item-detail">{{item.path}}</div>
+                                </div>
+                            </el-col>
+                        </el-row>
                     </div>
                 </template>
                 <!-- 项目配置 -->
@@ -397,7 +420,7 @@ module.exports = app => {
 
             <!-- 页面底部 -->
             <el-footer>
-                版权所有&nbsp;&copy;广州亿语智能科技有限公司
+                版权所有&nbsp;&copy;NoahAdams
             </el-footer>
         </el-container>
 
@@ -540,7 +563,7 @@ module.exports = app => {
         
 
         <!-- 项目配置预览导航 -->
-        <div v-if="isConfirmNewProject && curConfigStep === 4" 
+        <div v-if="(isConfirmNewProject || isConfirmEditProject)  && curConfigStep === 4" 
                 class="config-preview__nav" 
                 :class="{fold:isPreviewNavUnfold === false, unfold:isPreviewNavUnfold === true}">
             <div v-if="!isPreviewNavUnfold" class="nav-unfold" @click="isPreviewNavUnfold = true"><i class="el-icon-d-arrow-left"></i></div>
