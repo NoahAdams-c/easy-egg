@@ -80,6 +80,15 @@
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
+.el-dialog__body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.el-select {
+  width: 100%;
+}
+
 .button-bar {
   margin-top: 20px;
   text-align: center;
@@ -409,7 +418,7 @@
 ::-webkit-scrollbar-thumb {
   width: 5px;
   border-radius: 5px;
-  background-color: #faebd7;
+  background-color: #d7bb9d;
 }
 /* 滚动条的轨道 */
 ::-webkit-scrollbar-track {

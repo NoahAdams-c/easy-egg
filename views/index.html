@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-15 15:23:52
+ * @LastEditTime: 2021-07-16 12:14:39
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -480,6 +480,15 @@ module.exports = app => {
                 </el-form-item>
                 <el-form-item prop="port" label="端口">
                     <el-input placeholder="端口默认6379" v-model="dbConfigForm.port"></el-input>
+                </el-form-item>
+                <el-form-item prop="modelTables" label="数据模型">
+                    <el-select v-model="modelTables" clearable multiple :loading="isLoadingTableData" @visible-change="onTableSelectorVisibleChange">
+                        <el-option v-for="item in tables"
+                            :key="item"
+                            :label="item"
+                            :value="item">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
             </el-form>
             <span slot="footer">

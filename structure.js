@@ -3,8 +3,9 @@
  * @Author: chenchen
  * @Date: 2021-03-18 16:23:43
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-15 15:28:25
+ * @LastEditTime: 2021-07-16 11:40:38
  */
+const SequelizeAuto = require('sequelize-auto')
 const ChildProcess = require('child_process')
 const Fs = require('fs')
 const Path = require('path')
@@ -131,6 +132,8 @@ class Structure {
       Path.join(this.projectPath, 'app.js'),
       genAppHook(this.config)
     )
+    // 创建数据模型
+    this.genModel()
   }
 
   /**
@@ -175,6 +178,69 @@ class Structure {
     })
   }
 
+  /**
+   * sequelize#model生成
+   */
+  async genModel() {
+    console.log(this.config.databases)
+    for (let item of this.config.databases) {
+      if (!item.modelTables.length) continue
+      const outputDir = Path.join(
+        this.projectPath,
+        'app',
+        item.baseDir || 'model'
+      )
+      const auto = new SequelizeAuto(
+        item.database,
+        item.username,
+        item.password,
+        {
+          host: item.host,
+          dialect: item.dialect,
+          directory: outputDir,
+          port: item.port,
+          additional: {
+            freezeTableName: true,
+            timestamps: false
+          },
+          tables: item.modelTables
+        }
+      )
+      await auto.run()
+      this.handleModelContent(outputDir)
+    }
+  }
+
+  /**
+   * 处理生成的model为可被Eggjs使用的格式
+   */
+  handleModelContent(modelDir) {
+    // fs.rm 在node版本v14.14后才支持
+    // Fs.rmSync(Path.join(modelDir, 'init-models.js'), {
+    //   recursive: true,
+    //   force: true
+    // })
+    ChildProcess.execSync(
+      `${this.isWin ? 'del' : 'rm -rf'} ${Path.join(
+        modelDir,
+        'init-models.js'
+      )}`
+    )
+    Fs.readdirSync(modelDir, { withFileTypes: true }).filter(item => {
+      if (item.isFile()) {
+        const modelPath = Path.join(modelDir, item.name)
+        const buf = Fs.readFileSync(modelPath)
+        const content = buf.toString('utf-8')
+        let fixedContent = content.split('\n')
+        fixedContent.splice(0, 2)
+        fixedContent.unshift(
+          'module.exports = ({model: sequelize, Sequelize: DataTypes}) => {'
+        )
+        fixedContent = fixedContent.join('\n')
+        Fs.writeFileSync(modelPath, fixedContent)
+      }
+    })
+  }
   /**
    * eegg配置文件生成
    */

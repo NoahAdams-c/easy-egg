@@ -71,6 +71,12 @@ new Vue({
       host: '127.0.0.1',
       port: '3306'
     },
+    // 是否正在加载表数据
+    isLoadingTableData: false,
+    // 数据源中的所有的表
+    tables: [],
+    // 数据源中将生成模型的表
+    modelTables: [],
     // 数据库配置表单验证规则
     dbConfigRules: {
       username: [
@@ -255,22 +261,6 @@ new Vue({
      * 打开已有项目，初始化项目信息
      */
     openExistProject(info) {
-      // {
-      //   root: this.baseInfoForm.projectSavePath,
-      //   name: this.baseInfoForm.projectName,
-      //   author: this.baseInfoForm.projectAuthor,
-      //   description: this.baseInfoForm.projectDescrption,
-      //   repository: this.baseInfoForm.projectRepository,
-      //   type: this.baseInfoForm.projectType,
-      //   keys: this.baseInfoForm.projectKeys,
-      //   port: this.serverConfigForm.serverPort,
-      //   whiteList: this.serverConfigForm.serverWhiteList
-      //     .split(/\s/)
-      //     .filter(item => !!item),
-      //   databases: this.dbConfigList,
-      //   extends: this.selectedExtends,
-      //   serviceDesignDatas: this.serviceDesignDatas
-      // }
       this.baseInfoForm = {
         projectKeys: info.keys,
         projectName: info.name,
@@ -291,24 +281,60 @@ new Vue({
     },
 
     /**
+     * 展示/隐藏表下拉框时触发
+     */
+    async onTableSelectorVisibleChange(visible) {
+      if (visible) {
+        await this.$refs['dbConfigForm'].validate()
+        flag = await this.$refs['dbConfigForm'].validate()
+        if (!flag) return false
+        // 当展示下拉框时拉取表数据
+        this.isLoadingTableData = true
+        const res = await axios
+          .get(`${HOST}/tables`, {
+            params: {
+              username: this.dbConfigForm.username,
+              password: this.dbConfigForm.password,
+              dbName: this.dbConfigForm.database,
+              host: this.dbConfigForm.host,
+              port: this.dbConfigForm.port
+            }
+          })
+          .then(res => res.data)
+          .catch(err => err.response.data)
+        if (res && res.status === 0) {
+          this.tables = res.tables
+        }
+        this.isLoadingTableData = false
+      }
+    },
+
+    /**
      * 新增数据库配置
      */
     async addDBConfig() {
       await this.$refs['dbConfigForm'].validate()
       flag = await this.$refs['dbConfigForm'].validate()
       if (!flag) return
+      let modelConfig = {}
+      if (this.dbConfigList.length > 0) {
+        modelConfig = {
+          delegate: `${this.dbConfigForm.database.toLowerCase()}Model`,
+          baseDir: `${this.dbConfigForm.database.toLowerCase()}_model`
+        }
+      }
       this.dbConfigList.push(
         JSON.parse(
           JSON.stringify({
             ...this.dbConfigForm,
-            delegate: `${this.dbConfigForm.database.toLowerCase()}Model`,
-            baseDir: `${this.dbConfigForm.database.toLowerCase()}_model`,
+            ...modelConfig,
             dialect: 'mysql',
-            timezone: '+08:00'
+            timezone: '+08:00',
+            modelTables: this.modelTables
           })
         )
       )
-      this.isDBConfigDialogShow = false
+      this.onDBConfigDialogClose()
     },
 
     /**
@@ -316,6 +342,8 @@ new Vue({
      */
     onDBConfigDialogClose() {
       this.$refs['dbConfigForm'].resetFields()
+      this.tables = []
+      this.modelTables = []
       this.isDBConfigDialogShow = false
     },
 

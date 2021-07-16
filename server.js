@@ -3,8 +3,9 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:17:03
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-15 17:31:10
+ * @LastEditTime: 2021-07-15 19:44:42
  */
+const SequelizeAuto = require('sequelize-auto')
 const express = require('express')
 const app = express()
 const path = require('path')
@@ -75,6 +76,21 @@ module.exports = {
       res.send({
         status: 0,
         exists: findRes
+      })
+    })
+    // 获取指定数据源中的表
+    app.get('/tables', async (req, res) => {
+      const { username, password, dbName, host, port } = req.query
+      const auto = new SequelizeAuto(dbName, username, password, {
+        host,
+        dialect: 'mysql',
+        port,
+        noWrite: true
+      })
+      const data = await auto.run()
+      res.send({
+        status: 0,
+        tables: Object.keys(data.tables)
       })
     })
     // 获取本地文件目录
