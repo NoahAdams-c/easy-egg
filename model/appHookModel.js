@@ -3,11 +3,11 @@
  * @Author: chenchen
  * @Date: 2021-03-19 16:41:29
  * @LastEditors: chenchen
- * @LastEditTime: 2021-04-02 14:45:35
+ * @LastEditTime: 2021-07-27 11:08:10
  */
-module.exports = (props) => {
-	const consulConfig = props.extends.includes("consul")
-		? `// 初始化consul客户端
+module.exports = props => {
+  const consulConfig = props.extends.includes('consul')
+    ? `// 初始化consul客户端
         const consul = new Consul({
         host: '127.0.0.1',
         port: 8500,
@@ -42,9 +42,12 @@ module.exports = (props) => {
         } else {
         this.app._DYNAMIC_CONF = JSON.parse(dynamicConf.Value)
         }`
-		: ""
-	return `${consulConfig ? "const Consul = require('consul')" : ""}
+    : ''
+  return `${consulConfig ? "const Consul = require('consul')" : ''}
     const { set: _set } = require("lodash")
+    const fs = require('fs')
+    const path = require('path')
+    
     class AppBootHook {
       constructor(app) {
         this.app = app
@@ -73,6 +76,11 @@ module.exports = (props) => {
           _set(this.app, key, val)
           this.app.messenger.sendToApp("updApplicationStorageFinish")
         })
+        // 将接口信息对象放到内存中
+        await this.app.setStorage(
+          'apiDesignInfo',
+          genApiDesignInfo(this.app.baseDir)
+        )
       }
     
       async serverDidReady() {
@@ -81,5 +89,34 @@ module.exports = (props) => {
         ${consulConfig}
       }
     }
+    
+    /**
+     * 生成接口设计信息
+     * @param {String} projectPath 项目路径
+     */
+    const genApiDesignInfo = projectPath => {
+      const apiDesignInfo = {}
+      const apiPath = path.join(projectPath, 'app', 'api')
+      if (fs.existsSync(apiPath)) {
+        fs.readdirSync(apiPath).map(ns => {
+          const nsPath = path.join(apiPath, ns)
+          let routerPrefix = ''
+          if (fs.statSync(nsPath).isDirectory()) {
+            routerPrefix += '/' + ns
+            fs.readdirSync(nsPath).map(model => {
+              const modelPath = path.join(nsPath, model)
+              if (/^\\w+\\.json$/.test(model)) {
+                routerPrefix += '/' + model.replace('.json', '')
+                // 清除require缓存
+                delete require.cache[modelPath]
+                apiDesignInfo[routerPrefix] = require(modelPath) || []
+              }
+            })
+          }
+        })
+      }
+      return apiDesignInfo
+    }
+
     module.exports = AppBootHook`
 }

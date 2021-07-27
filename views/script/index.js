@@ -10,7 +10,9 @@ new Vue({
     isConfirmNewProject: false,
     // 是否确认修改已有项目
     isConfirmEditProject: false,
-    // 已存在项目列表
+    // 是否正在加载已有项目
+    isExistsProjectLoading: false,
+    // 已有项目列表
     existsProjectsInfo: [],
     // 当前配置步骤
     curConfigStep: 1,
@@ -177,9 +179,27 @@ new Vue({
       needAuth: true,
       routerName: '',
       methods: 'get',
-      requiredParams: '',
-      notRequiredParams: '',
-      expectResponse: ''
+      requiredParams: [],
+      notRequiredParams: [],
+      expectResponse: []
+    },
+    // 参数类型字典
+    paramTypeDic: ['String', 'Integer', 'Float', 'Array', 'Object'],
+    // 临时参数数据
+    requiredParamsTemp: {
+      name: '',
+      type: 'String',
+      len: 1
+    },
+    notRequiredParamsTemp: {
+      name: '',
+      type: 'String',
+      len: 1
+    },
+    expectResponseTemp: {
+      name: '',
+      type: 'String',
+      len: 1
     },
     // 接口设计表单验证规则
     APIDesignRules: {
@@ -194,13 +214,6 @@ new Vue({
         {
           required: true,
           message: '必须填写接口描述哦！',
-          trigger: 'change'
-        }
-      ],
-      routerName: [
-        {
-          required: true,
-          message: '必须填写路由名哦！',
           trigger: 'change'
         }
       ]
@@ -227,17 +240,25 @@ new Vue({
     },
     // 业务设计列表数据
     serviceDesignList() {
+      console.log('curServiceDesignStep:', this.curServiceDesignStep)
+      console.log('selectedDesignNames:', this.selectedDesignNames)
+      const PARENT_DEEP = this.curServiceDesignStep - 2
       return this.curServiceDesignStep === 1
         ? this.serviceDesignDatas
         : this.searchServiceDesignData(
-            this.selectedDesignNames[this.curServiceDesignStep - 2]
+            this.selectedDesignNames[PARENT_DEEP],
+            PARENT_DEEP
           ).children
     },
     // 指定接口数据
     APIData() {
       let data = null
-      if (this.selectedDesignNames[2]) {
-        data = this.searchServiceDesignData(this.selectedDesignNames[2])
+      const API_DEEP = 2
+      if (this.selectedDesignNames[API_DEEP]) {
+        data = this.searchServiceDesignData(
+          this.selectedDesignNames[API_DEEP],
+          API_DEEP
+        )
       }
       return data
     }
@@ -248,6 +269,7 @@ new Vue({
      * 获取当前目录下（3层内）已存在的eegg项目
      */
     async getExistsProject() {
+      this.isExistsProjectLoading = true
       const res = await axios
         .get(`${HOST}/projects`)
         .then(res => res.data)
@@ -255,6 +277,7 @@ new Vue({
       if (res && res.status === 0) {
         this.existsProjectsInfo = res.exists
       }
+      this.isExistsProjectLoading = false
     },
 
     /**
@@ -278,6 +301,39 @@ new Vue({
       this.selectedExtends = info.extends
       this.serviceDesignDatas = info.serviceDesignDatas
       this.isConfirmEditProject = true
+    },
+
+    /**
+     * 删除已有项目
+     */
+    async deleteExistProject(path) {
+      const isConfirm = await this.$confirm(
+        '此操作将永久删除该项目, 是否继续?',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+        .then(() => true)
+        .catch(() => false)
+      if (isConfirm) {
+        const res = await axios
+          .delete(`${HOST}/project`, {
+            data: { path }
+          })
+          .then(res => res.data)
+          .catch(err => err.response.data)
+        if (res && res.status === 0) {
+          this.$message({
+            message: '删除成功',
+            type: 'success'
+          })
+          // 删除成功重新渲染已存在项目
+          this.getExistsProject()
+        }
+      }
     },
 
     /**
@@ -387,16 +443,23 @@ new Vue({
     /**
      * 获取指定业务设计项下的业务设计数据
      * @param {String} name 指定业务设计项名
+     * @param {Integer} startDeep 搜索开始深度
+     * @param {Integer} curDeep 当前深度
      * @param {String} list 起始层业务设计数据列表
      */
-    searchServiceDesignData(name, list) {
+    searchServiceDesignData(name, startDeep = 0, curDeep = 0, list) {
       let originList = list || this.serviceDesignDatas
       for (let item of originList) {
-        if (item.name === name) {
+        if (curDeep >= startDeep && item.name === name) {
           return item
         }
         if (item.children) {
-          const res = this.searchServiceDesignData(name, item.children)
+          const res = this.searchServiceDesignData(
+            name,
+            startDeep,
+            curDeep + 1,
+            item.children
+          )
           if (res) {
             return res
           }
@@ -440,16 +503,16 @@ new Vue({
      */
     editAPI(name) {
       this.selectedDesignNames.splice(2, 1, name)
-      // console.log(this.APIData)
+      console.log(this.APIData)
       this.APIDesignForm = {
         name: this.APIData.name,
         description: this.APIData.description,
         needAuth: this.APIData.needAuth,
         routerName: this.APIData.routerName,
         methods: this.APIData.methods,
-        requiredParams: this.APIData.requiredParams.join('\n'),
-        notRequiredParams: this.APIData.notRequiredParams.join('\n'),
-        expectResponse: this.APIData.expectResponse.join('\n')
+        requiredParams: this.APIData.requiredParams,
+        notRequiredParams: this.APIData.notRequiredParams,
+        expectResponse: this.APIData.expectResponse
       }
       this.isAPIDesignDialogShow = true
     },
@@ -489,6 +552,7 @@ new Vue({
         )
         return
       }
+      console.log(this.serviceDesignDatas)
       if (this.curServiceDesignStep === 1) {
         this.serviceDesignDatas.push({
           name: this.newDesignName,
@@ -507,6 +571,39 @@ new Vue({
       }
       // this.nextSeviceDesign(this.newDesignName)
       this.newDesignName = ''
+    },
+
+    /**
+     * 新增接口参数
+     * @param {String} type 参数类型（必须/非必须/响应）
+     */
+    addParams(type) {
+      this[`${type}Temp`].name = this[`${type}Temp`].name.trim()
+      if (
+        !['requiredParams', 'notRequiredParams', 'expectResponse'].includes(
+          type
+        )
+      )
+        return
+      if (!this[`${type}Temp`].name) {
+        this.$message.error('请填写参数名哦')
+        return
+      }
+      if (
+        this.APIDesignForm[type]
+          .map(item => item.name)
+          .includes(this[`${type}Temp`].name)
+      ) {
+        this.$message.error('该参数已存在，不能重复哦')
+        return
+      }
+      !this[`${type}Temp`].len && (this[`${type}Temp`].len = 1)
+      this.APIDesignForm[type].push(this[`${type}Temp`])
+      this[`${type}Temp`] = {
+        name: '',
+        type: 'String',
+        len: 1
+      }
     },
 
     /**
@@ -532,15 +629,9 @@ new Vue({
                     needAuth: this.APIDesignForm.needAuth,
                     routerName: this.APIDesignForm.routerName,
                     methods: this.APIDesignForm.methods,
-                    requiredParams: this.APIDesignForm.requiredParams
-                      .split(/\s/)
-                      .filter(item => !!item),
-                    notRequiredParams: this.APIDesignForm.notRequiredParams
-                      .split(/\s/)
-                      .filter(item => !!item),
+                    requiredParams: this.APIDesignForm.requiredParams,
+                    notRequiredParams: this.APIDesignForm.notRequiredParams,
                     expectResponse: this.APIDesignForm.expectResponse
-                      .split(/\s/)
-                      .filter(item => !!item)
                   }
                   break outerLoop
                 }
@@ -552,15 +643,9 @@ new Vue({
                 needAuth: this.APIDesignForm.needAuth,
                 routerName: this.APIDesignForm.routerName,
                 methods: this.APIDesignForm.methods,
-                requiredParams: this.APIDesignForm.requiredParams
-                  .split(/\s/)
-                  .filter(item => !!item),
-                notRequiredParams: this.APIDesignForm.notRequiredParams
-                  .split(/\s/)
-                  .filter(item => !!item),
+                requiredParams: this.APIDesignForm.requiredParams,
+                notRequiredParams: this.APIDesignForm.notRequiredParams,
                 expectResponse: this.APIDesignForm.expectResponse
-                  .split(/\s/)
-                  .filter(item => !!item)
               })
               break outerLoop
             }
@@ -575,6 +660,31 @@ new Vue({
      */
     onAPIDesignDialogClose() {
       this.$refs['APIDesignForm'].resetFields()
+      this.APIDesignForm = {
+        name: '',
+        description: '',
+        needAuth: true,
+        routerName: '',
+        methods: 'get',
+        requiredParams: [],
+        notRequiredParams: [],
+        expectResponse: []
+      }
+      this.requiredParamsTemp = {
+        name: '',
+        type: 'String',
+        len: 1
+      }
+      this.notRequiredParamsTemp = {
+        name: '',
+        type: 'String',
+        len: 1
+      }
+      this.expectResponseTemp = {
+        name: '',
+        type: 'String',
+        len: 1
+      }
       this.isAPIDesignDialogShow = false
     },
 
@@ -650,7 +760,7 @@ new Vue({
      */
     async structProject() {
       this.isProgressDialogShow = true
-      await axios
+      const genInstanceRes = await axios
         .post(`${HOST}/project/instance`, {
           root: this.baseInfoForm.projectSavePath,
           name: this.baseInfoForm.projectName,
@@ -668,23 +778,51 @@ new Vue({
           serviceDesignDatas: this.serviceDesignDatas
         })
         .then(res => res.data)
-        .catch(err => err.response.data)
-      this.genProjectPercentage = 25
-      await axios
+        .catch(err => (err.response ? err.response.data : null))
+      if (genInstanceRes && genInstanceRes.status === 0) {
+        this.genProjectPercentage = 25
+      } else {
+        this.$message.error('项目创建失败，请重试')
+        this.genProjectPercentage = 0
+        this.isProgressDialogShow = false
+        return
+      }
+      const initRes = await axios
         .post(`${HOST}/project/init`)
         .then(res => res.data)
-        .catch(err => err.response.data)
-      this.genProjectPercentage = 50
-      await axios
+        .catch(err => (err.response ? err.response.data : null))
+      if (initRes && initRes.status === 0) {
+        this.genProjectPercentage = 50
+      } else {
+        this.$message.error('项目创建失败，请重试')
+        this.genProjectPercentage = 0
+        this.isProgressDialogShow = false
+        return
+      }
+      const genConfigRes = await axios
         .post(`${HOST}/project/config`)
         .then(res => res.data)
-        .catch(err => err.response.data)
-      this.genProjectPercentage = 75
-      await axios
+        .catch(err => (err.response ? err.response.data : null))
+      if (genConfigRes && genConfigRes.status === 0) {
+        this.genProjectPercentage = 75
+      } else {
+        this.$message.error('项目创建失败，请重试')
+        this.genProjectPercentage = 0
+        this.isProgressDialogShow = false
+        return
+      }
+      const genApiRes = await axios
         .post(`${HOST}/project/api`)
         .then(res => res.data)
-        .catch(err => err.response.data)
-      this.genProjectPercentage = 100
+        .catch(err => (err.response ? err.response.data : null))
+      if (genApiRes && genApiRes.status === 0) {
+        this.genProjectPercentage = 100
+      } else {
+        this.$message.error('项目创建失败，请重试')
+        this.genProjectPercentage = 0
+        this.isProgressDialogShow = false
+        return
+      }
       setTimeout(() => {
         this.$alert('项目创建完成!', 'Congratulations', {
           confirmButtonText: '确定',

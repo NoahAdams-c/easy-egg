@@ -3,19 +3,28 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:17:03
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-15 19:44:42
+ * @LastEditTime: 2021-07-26 13:48:16
  */
 const SequelizeAuto = require('sequelize-auto')
 const express = require('express')
 const app = express()
 const path = require('path')
 const fs = require('fs')
+const ChildProcess = require('child_process')
 const body_parser = require('body-parser')
 const { port } = require('./config')
 const Structure = require('./structure')
 
 let structureInstance = null
 
+/**
+ * 查找文件
+ * @param {String} origin_path 起始路径
+ * @param {String} target 目标文件名
+ * @param {Integer} max_deep 搜索最大深度
+ * @param {Array} res 搜索结果
+ * @param {Integer} deep 搜索当前深度
+ */
 const findFile = (origin_path, target, max_deep = 2, res = [], deep = 0) => {
   if (deep > max_deep) return res
   if (fs.existsSync(origin_path)) {
@@ -41,6 +50,44 @@ const findFile = (origin_path, target, max_deep = 2, res = [], deep = 0) => {
   }
   return res
 }
+
+/**
+ * 生成已有项目的业务设计信息
+ * @param {String} projectPath 项目路径
+ */
+const genServiceDesign = projectPath => {
+  const isProject = findFile(projectPath, 'eegg.conf.json', 1).length
+  const serviceDesignData = []
+  if (isProject) {
+    const apiPath = path.join(projectPath, 'app', 'api')
+    if (fs.existsSync(apiPath)) {
+      fs.readdirSync(apiPath).map(ns => {
+        const nsPath = path.join(apiPath, ns)
+        if (fs.statSync(nsPath).isDirectory()) {
+          const nsChildren = []
+          serviceDesignData.push({
+            name: ns,
+            children: nsChildren
+          })
+          fs.readdirSync(nsPath).map(model => {
+            const modelPath = path.join(nsPath, model)
+            if (/^\w+\.json$/.test(model)) {
+              // 清除require缓存
+              delete require.cache[modelPath]
+              nsChildren.push({
+                name: model.replace('.json', ''),
+                children: require(modelPath)
+              })
+            }
+          })
+        }
+      })
+    }
+  }
+  return serviceDesignData
+}
+
+let existsProjectList = []
 
 module.exports = {
   /**
@@ -68,11 +115,15 @@ module.exports = {
         // 清除require缓存
         delete require.cache[item]
         const info = require(item)
+        const projectPath = path.join(info.root, info.name)
+        const serviceDesignDatas = genServiceDesign(projectPath)
         return {
-          path: path.join(info.root, info.name),
+          path: projectPath,
+          serviceDesignDatas,
           ...info
         }
       })
+      existsProjectList = findRes
       res.send({
         status: 0,
         exists: findRes
@@ -112,26 +163,56 @@ module.exports = {
         isWin: process.platform === 'win32'
       })
     })
+    // 删除项目
+    app.delete('/project', (req, res) => {
+      const { path } = req.body
+      // 检查目录是否存在于已存在项目中
+      const isProjectExists = existsProjectList
+        .map(item => item.path)
+        .includes(path)
+      // 执行删除
+      if (isProjectExists) {
+        ChildProcess.execSync(
+          `${process.platform === 'win32' ? 'del' : 'rm -rf'} ${path}`
+        )
+      }
+      res.send({
+        status: 0,
+        msg: 'ok'
+      })
+    })
     // 构建项目实例
     app.post('/project/instance', (req, res) => {
       const config = req.body
       structureInstance = new Structure(config)
-      res.send(structureInstance.config)
+      res.send({
+        status: 0,
+        msg: 'ok'
+      })
     })
     // 初始化项目目录
     app.post('/project/init', (req, res) => {
       structureInstance.init()
-      res.send('ok')
+      res.send({
+        status: 0,
+        msg: 'ok'
+      })
     })
     // 生成项目配置
     app.post('/project/config', (req, res) => {
       structureInstance.generateConfig()
-      res.send('ok')
+      res.send({
+        status: 0,
+        msg: 'ok'
+      })
     })
     // 生成接口路由
     app.post('/project/api', (req, res) => {
       structureInstance.genAPIandRouter()
-      res.send('ok')
+      res.send({
+        status: 0,
+        msg: 'ok'
+      })
     })
 
     // create server listen

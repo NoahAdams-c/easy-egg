@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-18 16:23:43
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-16 11:40:38
+ * @LastEditTime: 2021-07-26 11:12:03
  */
 const SequelizeAuto = require('sequelize-auto')
 const ChildProcess = require('child_process')
@@ -174,40 +174,56 @@ class Structure {
           ),
           genService(model.name, model.children)
         )
+        // 生成接口信息文件
+        Fs.writeFileSync(
+          Path.join(
+            this.projectPath,
+            'app',
+            'api',
+            ns.name,
+            `${model.name}.json`
+          ),
+          JSON.stringify(model.children, undefined, 2)
+        )
       })
     })
+    // 生成接口文档相关文件
+    this.config.serviceDesignDatas.length && this.genAPIDocs()
   }
 
   /**
    * sequelize#model生成
    */
   async genModel() {
-    console.log(this.config.databases)
-    for (let item of this.config.databases) {
-      if (!item.modelTables.length) continue
-      const outputDir = Path.join(
-        this.projectPath,
-        'app',
-        item.baseDir || 'model'
-      )
-      const auto = new SequelizeAuto(
-        item.database,
-        item.username,
-        item.password,
-        {
-          host: item.host,
-          dialect: item.dialect,
-          directory: outputDir,
-          port: item.port,
-          additional: {
-            freezeTableName: true,
-            timestamps: false
-          },
-          tables: item.modelTables
-        }
-      )
-      await auto.run()
-      this.handleModelContent(outputDir)
+    try {
+      for (let item of this.config.databases) {
+        if (!item.modelTables.length) continue
+        const outputDir = Path.join(
+          this.projectPath,
+          'app',
+          item.baseDir || 'model'
+        )
+        const auto = new SequelizeAuto(
+          item.database,
+          item.username,
+          item.password,
+          {
+            host: item.host,
+            dialect: item.dialect,
+            directory: outputDir,
+            port: item.port,
+            additional: {
+              freezeTableName: true,
+              timestamps: false
+            },
+            tables: item.modelTables
+          }
+        )
+        await auto.run()
+        this.handleModelContent(outputDir)
+      }
+    } catch (err) {
+      console.log(err)
     }
   }
 
@@ -241,13 +257,49 @@ class Structure {
       }
     })
   }
+
+  /**
+   * 接口文档相关文件生成
+   */
+  genAPIDocs() {
+    // 复制controller文件
+    ChildProcess.execSync(
+      `${this.isWin ? 'copy' : 'cp'} ${Path.join(
+        __dirname,
+        'model',
+        'apidocs',
+        'apiDocsController.js'
+      )} ${Path.join(this.projectPath, 'app', 'controller', 'apiDocs.js')}`
+    )
+    // 复制router文件
+    ChildProcess.execSync(
+      `${this.isWin ? 'copy' : 'cp'} ${Path.join(
+        __dirname,
+        'model',
+        'apidocs',
+        'apiDocsRouter.js'
+      )} ${Path.join(this.projectPath, 'app', 'router', 'apiDocs.js')}`
+    )
+    // 复制接口文档页面文件
+    ChildProcess.execSync(
+      `${this.isWin ? 'copy' : 'cp'} ${Path.join(
+        __dirname,
+        'model',
+        'apidocs',
+        'index.html'
+      )} ${Path.join(this.projectPath, 'app', 'view')}`
+    )
+  }
+
   /**
    * eegg配置文件生成
    */
   genEEGGConf() {
+    const temp = JSON.parse(JSON.stringify(this.config))
+    delete temp.serviceDesignDatas
     Fs.writeFileSync(
       Path.join(this.projectPath, this.confFileName),
-      JSON.stringify(this.config, undefined, 2),
+      JSON.stringify(temp, undefined, 2),
       {
         flag: ''
       }

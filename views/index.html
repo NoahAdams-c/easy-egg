@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2021-03-12 14:23:53
  * @LastEditors: chenchen
- * @LastEditTime: 2021-07-16 12:14:39
+ * @LastEditTime: 2021-07-26 16:21:10
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -65,11 +65,14 @@
                         </div>
                     </div>
                     <!-- 已存在项目 -->
-                    <div v-if="existsProjectsInfo.length" class="main-exist">
+                    <div class="main-exist">
                         <div class="main-exist__title">已有项目</div>
-                        <el-row :gutter="15">
+                        <el-row :gutter="15" v-loading="isExistsProjectLoading">
+                            <div class="main-exist__empty" v-if="!isExistsProjectLoading && !existsProjectsInfo.length">
+                                你还没有用EEGG创建的项目哦
+                            </div>
                             <el-col :span="12" v-for="(item,index) in existsProjectsInfo">
-                                <div @click="openExistProject(item)" class="main-exist__item" :style="{ 'background-color': item.type === 'http' ? '#9BFDFB' : '#FFD4A1' }">
+                                <div class="main-exist__item" :style="{ 'background-color': item.type === 'http' ? '#9BFDFB' : '#FFD4A1' }">
                                     <div class="item-title">{{item.name}}</div>
                                     <div class="item-detail">
                                         <span class="label">创建人:&nbsp;</span>
@@ -80,6 +83,10 @@
                                         <span class="value">{{item.type}}</span>
                                     </div>
                                     <div class="item-detail">{{item.path}}</div>
+                                    <div class="item-handlebar">
+                                        <i class="el-icon-edit" style="color: #409EFF;margin-right: 10px;" @click="openExistProject(item)"></i>
+                                        <i class="el-icon-delete" style="color: #F56C6C;" @click="deleteExistProject(item.path)"></i>
+                                    </div>
                                 </div>
                             </el-col>
                         </el-row>
@@ -245,9 +252,9 @@
 /**
  * @Description {{APIData.description}}
  * @Router {{APIData.methods}} /{{selectedDesignNames[0]}}/{{selectedDesignNames[1]}}/{{APIData.routerName}}{{APIData.needAuth?'\n * @Request header { Authorization }':''}}
- * @Request {{APIData.methods === 'get'?'query':'body'}} { {{APIData.requiredParams.join(', ')}}{{APIData.notRequiredParams.length?'[, '+APIData.notRequiredParams.join(', ')+' ]':''}} }
- * @Response 200 { errcode, errmsg{{APIData.expectResponse.length?', '+APIData.expectResponse.join(', '):''}} }
- * @Response 400 { errcode, errmsg }
+ * @Request {{APIData.methods === 'get'?'query':'body'}} { <template v-for="(item,index) in APIData.requiredParams" :key="item.name">{{item.name}}:{{item.type}}{{item.type==='String'?'('+item.len+')':''}}{{index !== APIData.requiredParams.length - 1?', ':''}}</template><template v-if="APIData.notRequiredParams.length">[, <template v-for="(item,index) in APIData.notRequiredParams" :key="item.name">{{item.name}}:{{item.type}}{{item.type==='String'?'('+item.len+')':''}}{{index !== APIData.notRequiredParams.length - 1?', ':''}}</template>]</template> }
+ * @Response 200 { errcode:String, errmsg:String<template v-if="APIData.expectResponse.length">, <template v-for="(item,index) in APIData.expectResponse" :key="item.name">{{item.name}}:{{item.type}}{{index !== APIData.expectResponse.length - 1?', ':''}}</template></template> }
+ * @Response 400 { errcode:String, errmsg:String }
  */
 </pre>
                                     </template>
@@ -335,6 +342,15 @@ module.exports = appInfo => {
         prefix: '/',
         dir: [path.join(appInfo.baseDir, 'app/public')]
     }
+    config.view = {
+        root: [path.join(appInfo.baseDir, 'app/view')].join(','),
+        defaultExtension: '.html',
+        defaultViewEngine: 'nunjucks',
+        mapping: {
+          '.html': 'nunjucks'
+        },
+        cache: true
+    }
 
     return config
 }
@@ -383,6 +399,7 @@ module.exports = appInfo => {
                                         <div id="routerConfig" class="preview-item__title">app/router.js（总路由文件）</div>
                                         <pre>
 module.exports = app => {
+    <template v-if="serviceDesignDatas.length">require('./router/apiDocs')(app)</template>
     <template v-for="(item,index) in serviceDesignDatas" :key="index">require('./router/{{item.name}}.js')(app)
     </template>
 }
@@ -395,10 +412,8 @@ module.exports = app => {
     const { router, controller } = app;
     // 授权中间件
     const checkAuth = middleware.checkAuth()
-    // 参数检测中间件
-    const cp = middleware.checkParams
     <template v-for="(m,j) in ns.children" :key="j">// {{m.name}}
-    <template v-for="(api,k) in m.children" :key="k">router.{{api.methods}}('/{{ns.name}}/{{m.name}}/{{api.routerName}}', {{api.needAuth?'checkAuth, ':''}}{{api.requiredParams.length?'cp('+JSON.stringify(api.requiredParams)+'), ':''}}controller.{{m.name}}.{{api.name}}) // {{api.description}}
+    <template v-for="(api,k) in m.children" :key="k">router.{{api.methods}}('/{{ns.name}}/{{m.name}}{{api.routerName ? "/"+api.routerName : ""}}', {{api.needAuth?'checkAuth, ':''}}controller.{{m.name}}.{{api.name}}) // {{api.description}}
     </template>
     </template>
 }
@@ -507,9 +522,9 @@ module.exports = app => {
             <el-form :model="APIDesignForm" 
                             ref="APIDesignForm" 
                             :rules="APIDesignRules" 
-                            label-width="120px" 
                             :inline="false" 
                             size="normal">
+                            <!-- label-width="120px"  -->
                 <el-form-item prop="name" label="接口方法名">
                     <el-input v-model="APIDesignForm.name"></el-input>
                 </el-form-item>
@@ -534,23 +549,122 @@ module.exports = app => {
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item prop="requiredParams" label="必须请求参数">
-                    <el-input type="textarea" 
-                                    :autosize="{ minRows: 4 }" 
-                                    v-model="APIDesignForm.requiredParams"
-                                    placeholder="多个参数请使用换行分隔"></el-input>
+                <el-form-item label="必须请求参数">
+                    <table class="addition-table">
+                        <tr>
+                            <th>参数名</th>
+                            <th>类型</th>
+                            <th>长度</th>
+                        </tr>
+                        <tr v-for="(item,index) in APIDesignForm.requiredParams" :key="index">
+                            <td>{{item.name}}</td>
+                            <td>{{item.type}}</td>
+                            <td>{{item.len}}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <el-input v-model="requiredParamsTemp.name" placeholder="请输入参数名" clearable></el-input>
+                            </td>
+                            <td>
+                                <el-select v-model="requiredParamsTemp.type" placeholder="请选择参数类型">
+                                    <el-option v-for="item in paramTypeDic"
+                                        :key="item"
+                                        :label="item"
+                                        :value="item">
+                                    </el-option>
+                                </el-select>
+                            </td>
+                            <td>
+                                <el-input-number v-model="requiredParamsTemp.len" 
+                                                                placeholder="请输入参数长度" 
+                                                                :disabled=" requiredParamsTemp.type !== 'String' " 
+                                                                :min="1" 
+                                                                :max="65535" 
+                                                                :step="1" 
+                                                                :controls="false">
+                                </el-input-number>
+                                <i class="el-icon-check" style="color: #67C23A;" @click="addParams('requiredParams')"></i>
+                            </td>
+                        </tr>
+                    </table>
                 </el-form-item>
-                <el-form-item prop="notRequiredParams" label="非必须请求参数">
-                    <el-input type="textarea" 
-                                    :autosize="{ minRows: 4 }" 
-                                    v-model="APIDesignForm.notRequiredParams"
-                                    placeholder="多个参数请使用换行分隔"></el-input>
+                <el-form-item label="非必须请求参数">
+                    <table class="addition-table">
+                        <tr>
+                            <th>参数名</th>
+                            <th>类型</th>
+                            <th>长度</th>
+                        </tr>
+                        <tr v-for="(item,index) in APIDesignForm.notRequiredParams" :key="index">
+                            <td>{{item.name}}</td>
+                            <td>{{item.type}}</td>
+                            <td>{{item.len}}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <el-input v-model="notRequiredParamsTemp.name" placeholder="请输入参数名" clearable></el-input>
+                            </td>
+                            <td>
+                                <el-select v-model="notRequiredParamsTemp.type" placeholder="请选择参数类型">
+                                    <el-option v-for="item in paramTypeDic"
+                                        :key="item"
+                                        :label="item"
+                                        :value="item">
+                                    </el-option>
+                                </el-select>
+                            </td>
+                            <td>
+                                <el-input-number v-model="notRequiredParamsTemp.len" 
+                                                                placeholder="请输入参数长度" 
+                                                                :disabled=" notRequiredParamsTemp.type !== 'String' " 
+                                                                :min="1" 
+                                                                :max="65535" 
+                                                                :step="1" 
+                                                                :controls="false">
+                                </el-input-number>
+                                <i class="el-icon-check" style="color: #67C23A;" @click="addParams('notRequiredParams')"></i>
+                            </td>
+                        </tr>
+                    </table>
                 </el-form-item>
-                <el-form-item prop="expectResponse" label="预期响应参数">
-                    <el-input type="textarea" 
-                                    :autosize="{ minRows: 4 }" 
-                                    v-model="APIDesignForm.expectResponse"
-                                    placeholder="多个参数请使用换行分隔"></el-input>
+                <el-form-item label="预期响应参数">
+                    <table class="addition-table">
+                        <tr>
+                            <th>参数名</th>
+                            <th>类型</th>
+                            <th>长度</th>
+                        </tr>
+                        <tr v-for="(item,index) in APIDesignForm.expectResponse" :key="index">
+                            <td>{{item.name}}</td>
+                            <td>{{item.type}}</td>
+                            <td>{{item.len}}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <el-input v-model="expectResponseTemp.name" placeholder="请输入参数名" clearable></el-input>
+                            </td>
+                            <td>
+                                <el-select v-model="expectResponseTemp.type" placeholder="请选择参数类型">
+                                    <el-option v-for="item in paramTypeDic"
+                                        :key="item"
+                                        :label="item"
+                                        :value="item">
+                                    </el-option>
+                                </el-select>
+                            </td>
+                            <td>
+                                <el-input-number v-model="expectResponseTemp.len" 
+                                                                placeholder="请输入参数长度" 
+                                                                :disabled=" expectResponseTemp.type !== 'String' " 
+                                                                :min="1" 
+                                                                :max="65535" 
+                                                                :step="1" 
+                                                                :controls="false">
+                                </el-input-number>
+                                <i class="el-icon-check" style="color: #67C23A;" @click="addParams('expectResponse')"></i>
+                            </td>
+                        </tr>
+                    </table>
                 </el-form-item>
             </el-form>
             <span slot="footer">

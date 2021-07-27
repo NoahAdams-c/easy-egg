@@ -3,10 +3,10 @@
  * @Author: chenchen
  * @Date: 2021-03-19 13:45:55
  * @LastEditors: chenchen
- * @LastEditTime: 2021-03-22 14:03:55
+ * @LastEditTime: 2021-07-26 16:18:24
  */
-module.exports = (props) => {
-	return `const path = require('path')
+module.exports = props => {
+  return `const path = require('path')
 // 引入访问白名单配置
 const domainWhiteList = require('./domainWhiteList.json')
 // 引入数据库配置
@@ -25,10 +25,10 @@ module.exports = appInfo => {
     config.keys = '${props.keys}'
     // 中间件配置
     config.middleware = [${
-		props.extends.includes("consul") ? "'consulHandler'," : ""
-	}${props.extends.includes("contexthandler") ? "'contextHandler'," : ""}${
-		props.extends.includes("errorhandler") ? "'errorHandler'," : ""
-	}]
+      props.extends.includes('errorhandler') ? "'errorHandler'," : ''
+    }${props.extends.includes('contexthandler') ? "'contextHandler'," : ''}${
+    props.extends.includes('consul') ? "'consulHandler'," : ''
+  }'checkParams']
     // sequelize配置
     config.sequelize = {
         datasources: [
@@ -69,6 +69,15 @@ module.exports = appInfo => {
     config.static = {
         prefix: '/',
         dir: [path.join(appInfo.baseDir, 'app/public')]
+    }
+    config.view = {
+        root: [path.join(appInfo.baseDir, 'app/view')].join(','),
+        defaultExtension: '.html',
+        defaultViewEngine: 'nunjucks',
+        mapping: {
+          '.html': 'nunjucks'
+        },
+        cache: true
     }
 
     return config

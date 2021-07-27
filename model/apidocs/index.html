@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入vue -->
+    <script src="https://cdn.staticfile.org/vue/2.6.11/vue.min.js"></script>
+    <!-- 引入axios -->
+    <script src="https://cdn.staticfile.org/axios/0.21.0/axios.min.js"></script>
+    <!-- 引入moment -->
+    <script src="https://cdn.staticfile.org/moment.js/2.28.0/moment.min.js" integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg==" crossorigin="anonymous"></script>
+    <title>Document</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .menu, .view {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .menu {
+            border-right: 1px solid #a0a0a0;
+            background-color: #a0a0a0;
+            color: #f0f0f0;
+        }
+        .menu .menu--search {
+            height: 30px;
+            padding: 3px 5px;
+        }
+        .menu .menu--search input {
+            height: 100%;
+            width: 100%;
+            border: none;
+            font-size: 16px;
+        }
+        .menu .menu--item__ns {
+            font-size: 24px;
+            font-weight: 800;
+            padding: 12px 0;
+            padding-right: 40px;
+            padding-left: 30px;
+        }
+        .menu .menu--item__model {
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px 0;
+            padding-left: 15px;
+        }
+        .menu .menu--item__model.active {
+            color: #d7bb9d;
+        }
+        .menu .menu--item__model:hover {
+            color: #d7bb9d;
+        }
+
+        .view {
+            flex: 1;
+            padding: 10px;
+        }
+        .view .view--item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .view .view--item~.view--item {
+            margin-top: 20px;
+        }
+        .view .view--item .view--item__header {
+            /* border: 1px solid black; */
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 10px 15px;
+            width: 100%;
+        }
+        .view .view--item .view--item__header.get {
+            background-color: #DEF9B4;
+        }
+        .view .view--item .view--item__header.post {
+            background-color: #BDD5FE;
+        }
+        .view .view--item .view--item__header.delete {
+            background-color: #FFC8CB;
+        }
+        .view .view--item .view--item__header.put {
+            background-color: #FBFBB5;
+        }
+        .view--item__header .api-desc {
+            width: 100%;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .view--item__header .api-methods,
+        .view--item__header .api-router {
+            display: inline-block;
+        }
+        .view--item__header .api-router {
+            margin-left: 18px;
+        }
+        .view--item__header .api-needauth {
+            margin-top: 5px;
+            color: red;
+        }
+        .view .view--item .view--item__detail {
+            display: flex;
+            padding: 10px;
+            width: 99%;
+            border-left: 1px solid #d0d0d0;
+            border-right: 1px solid #d0d0d0;
+            border-bottom: 1px solid #d0d0d0;
+        }
+        .view--item__detail .api-req .title,
+        .view--item__detail .api-resp .title {
+            margin-bottom: 3px;
+        }
+        .view--item__detail .api-resp table,
+        .view--item__detail .api-req table {
+            border-collapse: collapse;
+        }
+        .view--item__detail .api-resp table td,
+        .view--item__detail .api-resp table th,
+        .view--item__detail .api-req table td,
+        .view--item__detail .api-req table th {
+            border: 1px solid #303030;
+            padding: 5px 8px;
+            text-align: center;
+        }
+        .view--item__detail .api-req {
+            padding-right: 50px;
+        }
+        .view--item__detail .api-resp {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="menu">
+            <div class="menu--search">
+                <input type="text" placeholder="输入关键字过滤API" @input="doApiFilter($event.target.value)">
+            </div>
+            <div class="menu--item__ns" v-for="(ns,nid) in apiData" :key="nid">
+                #&nbsp;&nbsp;${ns.name}
+                <div class="menu--item__model"
+                         v-for="(model,mid) in ns.children" 
+                         :key="mid"
+                         @click="onMenuItemClick($event, model.children, ns.name, model.name)">
+                    -&nbsp;&nbsp;${model.name}&nbsp;&nbsp;>
+                </div>
+            </div>
+        </div>
+        <div class="view">
+            <div class="view--item" v-for="(api,idx) in viewData" :key="idx">
+                <div class="view--item__header" :class="api.methods">
+                    <div class="api-desc">${api.description}</div>
+                    <div class="api-methods">${api.methods.toUpperCase()}</div>
+                    <div class="api-router">${api.routerName?curApiPrefix+'/'+api.routerName:curApiPrefix}</div>
+                    <div class="api-needauth">${api.needAuth ? '需要授权':''}</div>
+                </div>
+                <div class="view--item__detail">
+                    <div class="api-req">
+                        <div class="title">请求参数：</div>
+                        <template v-if="!api.requiredParams.length && !api.notRequiredParams.length">
+                            无
+                        </template>
+                        <template v-else>
+                            <table>
+                                <tr>
+                                    <th>参数名</th>
+                                    <th>类型</th>
+                                    <th>限制长度</th>
+                                    <th>是否必传</th>
+                                </tr>
+                                <tr v-for="(required,index) in api.requiredParams" :key="index">
+                                    <td>${required.name}</td>
+                                    <td>${required.type}</td>
+                                    <td>${required.type === 'String' ? required.len : '-'}</td>
+                                    <td>是</td>
+                                </tr>
+                                <tr v-for="(notRequired,index) in api.notRequiredParams" :key="index">
+                                    <td>${notRequired.name}</td>
+                                    <td>${notRequired.type}</td>
+                                    <td>${notRequired.type === 'String' ? notRequired.len : '-'}</td>
+                                    <td>否</td>
+                                </tr>
+                            </table>
+                        </template>
+                    </div>
+                    <div class="api-resp">
+                        <div class="title">响应参数：</div>
+                        <table>
+                            <tr>
+                                <th>参数名</th>
+                                <th>类型</th>
+                            </tr>
+                            <tr>
+                                <td>errcode</td>
+                                <td>String</td>
+                            </tr>
+                            <tr>
+                                <td>errmsg</td>
+                                <td>String</td>
+                            </tr>
+                            <tr v-for="(expectResp,index) in api.expectResponse" :key="index">
+                                <td>${expectResp.name}</td>
+                                <td>${expectResp.type}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            
+            delimiters:['${', '}'],
+
+            data() {
+                return {
+                    apiData: [],
+                    curApiPrefix: '',
+                    selectedApi: [],
+                    viewData: []
+                }
+            },
+
+            created() {
+                this.getDatas()
+            },
+
+            methods: {
+                async getDatas() {
+                    const res = await axios.get('http://127.0.0.1:7007/apidocs/data').then(res => res.data)
+                    if(res && res.errcode === '0') {
+                        this.apiData = res.data
+                    }
+                },
+
+                onMenuItemClick({ target }, data, ns, model) {
+                    if(target.classList.contains('menu--item__model')) {
+                        document.querySelectorAll('.menu--item__model').forEach(item => item.classList.remove('active'))
+                        target.classList.add('active')
+                        this.selectedApi = data
+                        this.curApiPrefix = `/${ns}/${model}`
+                        this.viewData = JSON.parse(JSON.stringify(this.selectedApi))
+                    }
+                },
+
+                doApiFilter(val) {
+                    console.log(val)
+                    if(val) {
+                        this.viewData = this.selectedApi.filter(item => {
+                            const router = item.routerName?this.curApiPrefix+'/'+item.routerName:this.curApiPrefix
+                            return item.description.indexOf(val) > -1 || router.indexOf(val) > -1
+                        })
+                    } else {
+                        this.viewData = JSON.parse(JSON.stringify(this.selectedApi))
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+</html>
